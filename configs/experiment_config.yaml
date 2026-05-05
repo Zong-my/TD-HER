@@ -1,0 +1,46 @@
+# Fepfm Benchmark Framework Configuration
+
+# ── Data paths ──
+data:
+  ieee39:
+    raw_dir: data/ieee39_v8
+    adj_path: data/ieee39_v8/adjacency/adjacency.npy
+    adj_fullbus_path: data/ieee39_v8/adjacency_fullbus/adjacency_fullbus.npy
+    raw_topology: data/topology/IEEE39.RAW
+    gen_buses: [30, 31, 32, 33, 34, 35, 36, 37, 38, 39]
+    base_freq: 60.0
+    trigger_time: 1.0
+
+  ieee300:
+    raw_dir: data/ieee300_v2
+    adj_path: data/ieee300_v2/adjacency/adjacency.npy
+    raw_topology: data/topology/IEEE300Bus_modified_noHVDC_v2.raw
+    gen_buses_range: [10000, 10069]
+    base_freq: 60.0
+    trigger_time: 1.0
+
+# ── Experiment settings ──
+experiments:
+  seed: 42
+  ms_default: 10
+  ms_list: [1, 5, 10, 15, 25]
+  mrmr_K: 200
+  num_threads: 23
+
+  optuna:
+    lgb_trials: 100
+    nn_trials: 50
+    timeout_s: 7200
+
+  training:
+    max_epochs: 100
+    patience: 15
+    batch_size: 256
+    lr: 0.001
+    weight_decay: 0.0001
+
+# ── Result paths ──
+results:
+  base_dir: results
+  ieee39: results/ieee39
+  ieee300: results/ieee300

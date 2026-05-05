@@ -1,0 +1,71 @@
+# ── Python ───────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.eggs/
+*.egg-info/
+dist/
+build/
+
+# ── Virtual environments ─────────────────────────
+.env
+.venv/
+venv/
+env/
+
+# ── Notebook / IDE ───────────────────────────────
+.ipynb_checkpoints/
+.vscode/
+.idea/
+.DS_Store
+
+# ── Logs / temp ──────────────────────────────────
+*.log
+*.tmp
+tmp/
+
+# ── Data and results (large artifacts) ───────────
+data/ieee39/
+data/ieee300/
+data/*.csv
+data/*.npy
+data/*.npz
+data/*.pt
+data/*.pkl
+data/*.h5
+data/*.xlsx
+
+results/ieee39/
+results/ieee300/
+results/ieee300_posttrigger/
+results/paper_artifacts/
+results/paper_tables/
+results/**/*.csv
+results/**/*.npy
+results/**/*.npz
+results/**/*.pt
+results/**/*.pkl
+results/**/*.h5
+results/**/*.json
+results/**/*.png
+results/**/*.pdf
+results/**/*.svg
+
+# Allow placeholder READMEs to be tracked
+!data/README.md
+!results/README.md
+!results/.gitkeep
+
+# ── Optuna / training checkpoints ────────────────
+*.optuna.db
+*.sqlite3
+optuna_studies/
+checkpoints/
+*.ckpt
+
+# ── Misc ─────────────────────────────────────────
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/

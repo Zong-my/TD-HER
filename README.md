@@ -1,4 +1,9 @@
 # TD-HER
+
+<p align="center">
+  <img src="assets/fig02_tdher_overview.png" alt="TD-HER Framework Overview" width="100%">
+</p>
+
 > **Note** — This repository accompanies the manuscript currently under review at *IEEE TII*. Full data and pretrained checkpoints will be released upon acceptance.
 
 ---

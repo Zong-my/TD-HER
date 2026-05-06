@@ -1,10 +1,5 @@
 # TD-HER
-
-**T**arget-**D**ependent **H**eterogeneous **E**xpert **R**outing for post-disturbance frequency prediction.
-
-A calibration-stage routing framework that converts a bank of independently trained heterogeneous predictors into target-dependent frequency-response predictions, with out-of-fold (OOF) certified adapter admission and a constrained convex router.
-
-> **Note** — This repository accompanies the manuscript currently under review at *IEEE Transactions on Industrial Informatics*. Full simulation data and pretrained checkpoints will be released upon acceptance.
+> **Note** — This repository accompanies the manuscript currently under review at *IEEE TII*. Full data and pretrained checkpoints will be released upon acceptance.
 
 ---
 
@@ -208,14 +203,8 @@ The few-shot adapter is admitted when both:
 
 ## Citation
 
-```bibtex
-@article{tdher2026,
-  title   = {Target-Dependent Heterogeneous Expert Routing for Post-Disturbance Frequency Prediction},
-  author  = {xxx},
-  journal = {IEEE Transactions on Industrial Informatics},
-  year    = {2026},
-  note    = {Under review}
-}
+```
+Manuscript under review; relevant content to be updated.
 ```
 
 ---

@@ -4,7 +4,7 @@
   <img src="assets/fig02_tdher_overview.png" alt="TD-HER Framework Overview" width="100%">
 </p>
 
-> **Note** — This repository accompanies the manuscript currently under review at *IEEE TII*. Full data and pretrained checkpoints will be released upon acceptance.
+> **Note** — This repository accompanies the manuscript currently under review at *IEEE TII*. The preprocessed dataset (IEEE 39-bus and IEEE 300-bus, all representations) is publicly available on [Hugging Face Datasets](https://huggingface.co/datasets/babycow/TD-HER-Dataset).
 
 ---
 
@@ -62,7 +62,19 @@ GPU dependencies:
 
 ### 2 · Data
 
-Place raw PSS/E simulations under `data/ieee39_v8/` and `data/ieee300_v2/` per the layout in [`data/README.md`](data/README.md), then build representations:
+**Option A — Download preprocessed representations (recommended):**
+
+```bash
+# Requires: pip install huggingface_hub
+python -c "
+from huggingface_hub import snapshot_download
+snapshot_download('babycow/TD-HER-Dataset', repo_type='dataset', local_dir='data/representations')
+"
+```
+
+**Option B — Build from raw PSS/E simulations:**
+
+Place raw simulations under `data/ieee39_v8/` and `data/ieee300_v2/` per the layout in [`data/README.md`](data/README.md), then:
 
 ```bash
 python -m data_proc.extract_features          # xlsx → CSV (parallel, ~6 h)
@@ -217,13 +229,11 @@ Manuscript under review; relevant content to be updated.
 ## License
 
 Released under the [MIT License](LICENSE). The IEEE 39-bus and IEEE 300-bus test
-systems are public-domain reference networks; the simulation data generated
-from them is released under the same terms upon manuscript acceptance.
+systems are public-domain reference networks; the preprocessed dataset is
+publicly available at [huggingface.co/datasets/babycow/TD-HER-Dataset](https://huggingface.co/datasets/babycow/TD-HER-Dataset).
 
 ---
 
 ## Contact
 
-Issues and pull requests are welcome on GitHub. For dataset access prior to
-public release, please contact the corresponding author with institutional
-affiliation.
+Issues and pull requests are welcome on GitHub.

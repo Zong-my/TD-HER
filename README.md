@@ -4,7 +4,7 @@
   <img src="assets/fig02_tdher_overview.png" alt="TD-HER Framework Overview" width="100%">
 </p>
 
-> **Note** — This repository accompanies the manuscript currently under review at *IEEE TII*. The preprocessed dataset (IEEE 39-bus and IEEE 300-bus, all representations) is publicly available on [Hugging Face Datasets](https://huggingface.co/datasets/babycow/TD-HER-Dataset).
+> **Note** — This repository accompanies the manuscript currently under review at *IEEE TII*. The preprocessed dataset is publicly available on [Hugging Face Datasets](https://huggingface.co/datasets/babycow/TD-HER-Dataset).
 
 ---
 
@@ -12,7 +12,7 @@
 
 - **Target-dependent routing.** The frequency extremum (`y₁`) and the time to extremum (`y₂`) require different evidence sources; TD-HER fits two simplex-constrained routes, one per target, instead of a shared backbone.
 - **Certified adapter admission.** Under distribution shift, a few-shot LightGBM adapter is admitted only when its OOF improvement clears a paired-bootstrap practical-margin certificate (`τ = 0.20`).
-- **Heterogeneous expert bank (K = 7).** LightGBM, KAN, FT-Transformer (tabular, Rep. A) · ConvLSTM, PatchTST (temporal, Rep. B) · Mamba (sequence, Rep. B) · ST-GCN (graph, Rep. C).
+- **Heterogeneous expert bank (K).** LightGBM, KAN, FT-Transformer (tabular, Rep. A) · ConvLSTM, PatchTST (temporal, Rep. B) · Mamba (sequence, Rep. B) · ST-GCN (graph, Rep. C).
 - **Three-level generalization protocol.** L1 same-distribution, L2 cross-condition few-shot, L3 cross-topology few-shot.
 - **Industrial-grade latency.** ~3.6 ms / sample on a single GPU (parallel experts), ~17.2 ms on a CPU-only server (sequential, excluding Mamba) — both well within the 100 ms early-assessment window.
 
@@ -228,8 +228,7 @@ Manuscript under review; relevant content to be updated.
 
 ## License
 
-Released under the [MIT License](LICENSE). The IEEE 39-bus and IEEE 300-bus test
-systems are public-domain reference networks; the preprocessed dataset is
+Released under the [MIT License](LICENSE). The test systems are public-domain reference networks; the preprocessed dataset is
 publicly available at [huggingface.co/datasets/babycow/TD-HER-Dataset](https://huggingface.co/datasets/babycow/TD-HER-Dataset).
 
 ---

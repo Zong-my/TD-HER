@@ -1,117 +1,132 @@
-# Data Directory — Placeholder
+# TD-HER Dataset
 
-Raw simulation data is **not bundled** with this repository (multi-GB scale).
-This directory is reserved for the dataset layout expected by the data pipeline.
+Pre-processed representations for reproducing all results in the paper
+*"Target-Dependent Heterogeneous Expert Routing for Power System Frequency
+Extremum and Arrival-Time Prediction"*.
 
-## Expected Layout
+## Quick Start
+
+All experiment scripts default to `data/` as the dataset root.
+No additional configuration is needed if the dataset is placed here.
+
+## Dataset Structure
 
 ```
 data/
-├── ieee39_v8/                         # IEEE 39-bus raw simulation set (xlsx)
-│   ├── train/                         # 121,668 samples (.xlsx per scenario)
-│   ├── val/                           # 12,673 samples
-│   ├── test/                          # 12,676 samples
-│   ├── cross_cond_test/               # 511   samples (L2 protocol)
-│   ├── cross_cond_topo_test/          # 2,337 samples (L3 protocol)
-│   ├── adjacency/
-│   │   └── adjacency.npy              # 10×10 generator-bus electrical-distance kernel
-│   └── adjacency_fullbus/
-│       └── adjacency_fullbus.npy      # full-bus variant for ablation
-├── ieee39_v8_80_10_10/                # IEEE 39-bus split-and-built representations
-│   ├── csv/{train,val,test,...}_ms{1,5,10,15,25}.csv
-│   └── {train,val,test,...}/
-│       ├── repA.npy   (tabular features)
-│       ├── repB.npy   (T × N × C tensor)
-│       ├── repC.npy   (graph-form per-node tensor)
-│       ├── y1.npy     (frequency extremum, signed)
-│       └── y2.npy     (time to extremum, seconds)
-├── ieee300_v2/                        # IEEE 300-bus raw simulation set
-│   ├── train/                         # 7,391 samples
-│   ├── val/                           #   923 samples
-│   ├── test/                          #   926 samples
-│   └── adjacency/
-│       └── adjacency.npy              # 69×69 generator-bus kernel
-├── ieee300_v2_posttrigger/            # IEEE 300-bus rebuilt post-trigger representations
-│   └── {train,val,test}/{repA,repB,repC,y1,y2}.npy
-└── topology/                          # PSS/E reference RAW files (not bundled)
-    ├── IEEE39.RAW
-    └── IEEE300Bus_modified_noHVDC_v2.raw
+├── ieee39/                     # IEEE 39-bus New England system (10 generators)
+│   ├── repA/                   # Representation A (tabular features)
+│   │   ├── ms1/                #   ~10 ms early window (1 post-trigger step)
+│   │   ├── ms5/                #   ~50 ms early window
+│   │   ├── ms10/               #   ~100 ms early window (main setting)
+│   │   ├── ms15/               #   ~150 ms early window
+│   │   └── ms25/               #   ~250 ms early window
+│   ├── repB/                   # Representation B (spatiotemporal tensor + static)
+│   │   └── ms{1,5,10,15,25}/
+│   ├── repC/                   # Representation C (graph: tensor + adjacency)
+│   │   └── ms{1,5,10,15,25}/
+│   ├── csv/                    # Raw ms10 CSV files (for robustness stress test)
+│   └── adjacency/              # 10×10 Kron-reduced electrical-distance adjacency
+│
+└── ieee300/                    # IEEE 300-bus system (69 generators)
+    ├── repA/ms10/              # Tabular features (same-distribution only)
+    ├── repB/ms10/              # Spatiotemporal tensor + static
+    ├── repC/ms10/              # Graph representation
+    └── adjacency/              # 69×69 electrical-distance adjacency
 ```
+
+## Split Convention
+
+Each `ms{N}/` directory contains NumPy arrays following the naming convention:
+
+| File pattern | Description |
+|---|---|
+| `X_train.npy`, `y_train.npy` | Training set (L1 same-distribution) |
+| `X_val.npy`, `y_val.npy` | Validation/calibration set (L1) |
+| `X_test.npy`, `y_test.npy` | Held-out test set (L1) |
+| `X_cross_cond_finetune.npy` | L2 cross-condition calibration set |
+| `X_cross_cond_test.npy` | L2 cross-condition test set |
+| `X_cross_cond_topo_finetune.npy` | L3 cross-topology calibration set |
+| `X_cross_cond_topo_test.npy` | L3 cross-topology test set |
+| `feature_names.json` | Ordered feature names for RepA |
+| `meta.json` | Tensor dimensions and channel info for RepB |
+
+L2/L3 splits are only available at `ms10` (the main early-window setting).
+
+## Prediction Targets
+
+- **y1** (`y[:,0]`): Signed COI frequency extremum (Hz)
+- **y2** (`y[:,1]`): Nonnegative time from disturbance trigger to frequency extremum (s)
+
+## Sample Counts
+
+| System | Split | Samples |
+|---|---|---|
+| IEEE 39-bus | Train | 101,390 |
+| IEEE 39-bus | Validation/Calibration | 12,673 |
+| IEEE 39-bus | Test | 12,676 |
+| IEEE 39-bus | L2 cross-condition calibration | 510 |
+| IEEE 39-bus | L2 cross-condition test | 511 |
+| IEEE 39-bus | L3 cross-topology calibration | 2,337 |
+| IEEE 39-bus | L3 cross-topology test | 2,337 |
+| IEEE 300-bus | Train | 7,391 |
+| IEEE 300-bus | Validation | 923 |
+| IEEE 300-bus | Test | 926 |
 
 ## Channels
 
-| Channel | Source              | Description                              |
-|---------|---------------------|------------------------------------------|
-| `FREQ`  | PMU-observable      | Bus frequency                            |
-| `VOLT`  | PMU-observable      | Bus voltage magnitude                    |
-| `ANGL`  | PMU-observable      | Bus voltage angle                        |
-| `POWR`  | PMU-computable      | Generator-terminal active power          |
-| `SPD`   | Generator-side state| Generator speed deviation (PMU-proxy OK) |
+| Channel | Source | Description |
+|---|---|---|
+| `FREQ` | PMU-observable | Bus frequency |
+| `VOLT` | PMU-observable | Bus voltage magnitude |
+| `ANGL` | PMU-observable | Bus voltage angle |
+| `POWR` | PMU-computable | Generator-terminal active power |
+| `SPD` | Generator-side state | Generator speed deviation (PMU-proxy compatible) |
 
-## Targets
+## Paper Section Mapping
 
-| Target | Notation       | Definition                                                    |
-|--------|----------------|---------------------------------------------------------------|
-| `y1`   | `Δf_ext` (Hz)  | Signed post-trigger COI frequency extremum                    |
-| `y2`   | `t_Δf` (s)     | Non-negative time from trigger to that extremum               |
+| Data | Paper section | Experiment |
+|---|---|---|
+| ieee39/rep{A,B,C}/ms10 | §IV.B–E | Main expert comparison, TD-HER routing, ablation, weights |
+| ieee39/rep{A,B,C}/ms{1,5,15,25} | §IV.G, Fig. 10 | Multi-window latency-accuracy study |
+| ieee39/csv/*_ms10.csv | Supplementary §III | Robustness stress test (sensor noise, gaps) |
+| ieee39/adjacency/ | §IV (ST-GCN input) | Graph expert adjacency matrix |
+| ieee300/rep{A,B,C}/ms10 | §IV.F | 300-bus scalability experiment |
+| ieee300/adjacency/ | §IV.F (ST-GCN input) | 300-bus graph adjacency matrix |
 
-## Reproducing the Dataset
+## Data Generation
 
-The IEEE 39-bus and IEEE 300-bus dynamic simulations are generated in PSS/E
-(version 33 or later). Each sample is a single time-domain disturbance run
-covering one of:
+The raw time-domain simulation data were generated in PSS/E under randomized
+disturbances and operating conditions (see Section IV-A of the paper).
+The representations were constructed by the pipeline in `data_proc/`:
 
-- Three-phase short circuits at randomly chosen buses
-- Generator tripping
-- Step load changes
-
-Operating-condition randomization parameters (load level, ZIP composition,
-reserve ratio, inertia distribution) follow the description in the manuscript
-Section IV.A. The IEEE 300-bus generator inertia table is included at
-`simulation/ieee300_gen_Hs.csv` for reproducibility, and a reference
-generation script is provided at `simulation/generate_freq_data300_v3.py`.
+1. `data_proc/extract_features.py` — xlsx/CSV extraction from PSS/E output
+2. `data_proc/build_representations.py` — RepA/RepB/RepC construction
+3. `data_proc/build_adjacency.py` — Kron-reduced adjacency matrices
 
 ## IEEE Test System RAW Topology Files
 
-The graph-expert adjacency builder (`data_proc/build_adjacency.py`) and a few
-figure-rendering helpers consume the PSS/E `.RAW` topology specifications of
-the IEEE 39-bus and IEEE 300-bus reference systems. These are **standard
-public test cases** distributed by the IEEE Power & Energy Society and not
-redistributed in this repository.
+The graph-expert adjacency builder (`data_proc/build_adjacency.py`) consumes
+PSS/E `.RAW` topology files. These are standard public IEEE test cases and are
+not redistributed here.
 
-| File expected by the code | Public source                                                     |
-|---------------------------|-------------------------------------------------------------------|
-| `IEEE39.RAW`              | IEEE PES Test Feeder Working Group / Illinois Center for a Smarter Electric Grid (ICSEG) |
-| `IEEE300Bus_modified_noHVDC_v2.raw` | RLGC repository on GitHub (`testData/IEEE300/`); a modified IEEE 300-bus case without HVDC links |
+| File | Public source |
+|---|---|
+| `IEEE39.RAW` | IEEE PES Test Feeder Working Group / ICSEG |
+| `IEEE300Bus_modified_noHVDC_v2.raw` | RLGC repository (`testData/IEEE300/`) |
 
-**Recommended placement** (consistent with `configs/experiment_config.yaml`):
+Place them in `data/topology/` if you need to regenerate adjacency matrices
+from scratch (not required if using the pre-computed `.npy` files above).
 
-```
-data/
-├── topology/
-│   ├── IEEE39.RAW
-│   └── IEEE300Bus_modified_noHVDC_v2.raw
-└── ...
-```
+## Size
 
-All scripts in this repository read these files from
-`data/topology/IEEE39.RAW` and `data/topology/IEEE300Bus_modified_noHVDC_v2.raw`
-(relative to the project root, declared in `configs/experiment_config.yaml`).
-Drop the public-domain RAW files into `data/topology/` and the pipeline
-will resolve them automatically.
+| Component | Size |
+|---|---|
+| ieee39 (all windows) | 15.5 GB |
+| ieee300 (ms10 only) | 2.5 GB |
+| **Total** | **18.0 GB** |
 
-### Where to obtain
+205 files total (184 `.npy`, 12 `.json`, 7 `.csv`, 2 other).
 
-- **IEEE 39-bus**: search for "New England 39-bus IEEE PES test case PSS/E RAW"
-  on the IEEE PES Test Feeder Working Group site or on the ICSEG benchmark
-  archive. The standard 60 Hz, 10-generator system is sufficient.
-- **IEEE 300-bus**: the modified-noHVDC variant used here is published in the
-  RLGC test-case archive (Liu et al., open-source GitHub repository under the
-  `testData/IEEE300/` subdirectory). MATPOWER's `case300.m` can also be
-  converted to PSS/E RAW format if the HVDC line is removed manually.
+## License
 
-## Obtaining the Data
-
-The full simulation set used in the paper is available on request. Contact
-the corresponding author with institutional affiliation. A minimal sample
-subset for demo purposes will be released once the manuscript is accepted.
+Released under the same license as the TD-HER repository.

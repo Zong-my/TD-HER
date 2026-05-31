@@ -1,0 +1,12 @@
+TD-HER Dataset (18 GB)
+
+The full dataset is hosted on HuggingFace due to its large size:
+https://huggingface.co/datasets/babycow/TD-HER-Dataset
+
+Download instructions:
+
+  pip install huggingface_hub
+  huggingface-cli download babycow/TD-HER-Dataset --repo-type dataset --local-dir data/
+
+For detailed file structure and usage, see data/README.md in the GitHub repository:
+https://github.com/Zong-my/TD-HER

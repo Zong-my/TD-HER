@@ -103,6 +103,38 @@ The representations were constructed by the pipeline in `data_proc/`:
 2. `data_proc/build_representations.py` — RepA/RepB/RepC construction
 3. `data_proc/build_adjacency.py` — Kron-reduced adjacency matrices
 
+## Paper-Aligned PSS/E Case Records
+
+The repository includes four versioned text records under `data/psse_cases/`:
+
+| System | Network record | Dynamic-model record |
+|---|---|---|
+| IEEE 39-bus | `IEEE39_paper_aligned_mixed_v2.raw` | `IEEE39_paper_aligned_mixed_v2.dyr` |
+| IEEE 300-bus | `IEEE300_paper_aligned_v2.raw` | `IEEE300_paper_aligned_v2.dyr` |
+
+The 39-bus pair records the mixed PV/Type-4-wind configuration used in the
+added renewable-composition sensitivity study while retaining the historical
+bus-33 Type-4 wind plant. It is a paper-aligned reproducibility companion, not
+a replacement for the historical cases underlying the processed learning
+dataset. The 300-bus pair is the verified text export of the scalability
+configuration. The benchmark names refer to the standard transmission
+topologies: the 39-bus RAW record additionally retains four auxiliary
+load-model buses connected through dedicated coupling transformers, and the
+300-bus RAW record explicitly retains 69 low-voltage generating-unit terminal
+buses behind step-up transformers. These implementation buses are documented
+in `data/psse_cases/README.md` and are omitted from the manuscript schematics.
+Both pairs were
+validated in PSS/E 33.4 using its supported Python 2.7 runtime through case
+loading, solved power flow, dynamic-model loading and reloading, dynamic
+initialization, disturbance execution, and a complete 15-s run.
+
+These files make the network topology, equipment locations, and dynamic-model
+records directly inspectable. The 18-GB processed learning dataset remains the
+authoritative source for reproducing the manuscript's model-training and
+evaluation results; the four PSS/E files are system-configuration companions
+and do not replace that dataset. See `data/psse_cases/README.md` and
+`data/psse_cases/SHA256SUMS` for provenance and file-level verification.
+
 ## IEEE Test System RAW Topology Files
 
 The graph-expert adjacency builder (`data_proc/build_adjacency.py`) consumes

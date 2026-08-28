@@ -23,7 +23,7 @@
 ```
 TD-HER/
 ├── configs/                     experiment_config.yaml — paths and hyperparameter defaults
-├── data/                        Raw simulation data (placeholder, see data/README.md)
+├── data/                        Dataset guide and versioned paper-aligned PSS/E RAW/DYR cases
 ├── data_proc/                   Data pipeline — PSS/E xlsx → tabular / tensor / graph representations
 ├── models/                      Heterogeneous expert architectures + shared NN scaffolding
 ├── experiments/                 Paper experiments + figure / table rendering
@@ -73,6 +73,13 @@ snapshot_download('babycow/TD-HER-Dataset', repo_type='dataset', local_dir='data
 ```
 
 **Option B — Build from raw PSS/E simulations:**
+
+Versioned paper-aligned PSS/E RAW/DYR records for the IEEE 39-bus and IEEE
+300-bus configurations are provided in [`data/psse_cases/`](data/psse_cases/),
+together with provenance, validation scope, and SHA-256 checksums. The 39-bus
+pair documents the mixed renewable sensitivity configuration while retaining
+the historical bus-33 Type-4 wind plant; the processed dataset remains the
+authoritative input for reproducing the paper's training and evaluation.
 
 Place raw simulations under `data/ieee39_v8/` and `data/ieee300_v2/` per the layout in [`data/README.md`](data/README.md), then:
 
@@ -215,6 +222,9 @@ The few-shot adapter is admitted when both:
 - Determinism flags (`torch.use_deterministic_algorithms(True)`) are enabled where supported by the underlying expert.
 - Each experiment writes an `audit_report.json` documenting split sizes, prediction-label alignment, and metric recomputation against exported CSV tables.
 - All paper-facing CSV tables under `results/paper_tables/` are auto-validated against saved prediction arrays before figures are rendered.
+- The paper-aligned IEEE 39-bus and IEEE 300-bus PSS/E RAW/DYR records are
+  released under [`data/psse_cases/`](data/psse_cases/) with file-level
+  checksums so that the reported network and dynamic-equipment configurations can be independently inspected.
 
 ---
 

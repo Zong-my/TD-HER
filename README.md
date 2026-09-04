@@ -4,7 +4,7 @@
   <img src="assets/fig02_tdher_overview.png" alt="TD-HER Framework Overview" width="100%">
 </p>
 
-> **Note** — This repository accompanies the manuscript currently under review at *IEEE TII*. The preprocessed dataset is publicly available on [Hugging Face Datasets](https://huggingface.co/datasets/babycow/TD-HER-Dataset).
+> **Note** — This repository accompanies the manuscript currently under review. The preprocessed dataset is publicly available on [Hugging Face Datasets](https://huggingface.co/datasets/babycow/TD-HER-Dataset).
 
 ---
 

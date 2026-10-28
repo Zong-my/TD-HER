@@ -6,16 +6,23 @@ Standard: Nature / IEEE top-journal / CS top-venue grade.
 All figures import this module to ensure visual consistency.
 """
 
+# Resolve source imports independently of the caller's working directory.
+import sys as _tdher_sys
+from pathlib import Path as _TDHERPath
+_tdher_repo = next(x for x in _TDHERPath(__file__).resolve().parents if (x / "tdher_paths.py").is_file())
+if str(_tdher_repo) not in _tdher_sys.path:
+    _tdher_sys.path.insert(0, str(_tdher_repo))
+from tdher_paths import REPO_ROOT, WORK_ROOT, DATA_ROOT, RESULTS_ROOT, data_path, work_path
+
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from pathlib import Path
 
 # ── Output directories ───────────────────────────────────────────
-# Self-contained: every figure lands inside the project's results/ tree.
-FIG_DIR = Path("results/paper_artifacts/figures")
-PAPER_FIG_DIR = Path("results/paper_artifacts/figures")
-SUPP_FIG_DIR = Path("results/paper_artifacts/supplementary_figures")
+FIG_DIR = Path(str(work_path('results/paper_artifacts/figures')))
+PAPER_FIG_DIR = work_path("figures")
+SUPP_FIG_DIR = work_path("figures/supplementary")
 
 # ── Expert family color palette (colorblind-friendly, muted) ─────
 EXPERT_COLORS = {
@@ -81,10 +88,20 @@ TEXT_WIDTH = 7.16   # IEEE double column
 def apply_style():
     """Apply the global Nature/IEEE-grade figure style."""
     plt.rcParams.update({
-        # Font (IEEE TII body uses Times Roman; figure text matches body)
+        # Font — Times New Roman everywhere (text, ticks, labels, mathtext).
+        # mathtext.fallback="stix" only kicks in for symbols Times lacks (Greek,
+        # ∑, etc.); STIX is Times-metric-compatible so the result reads as one
+        # unified font family.
         "font.family": "serif",
         "font.serif": ["Times New Roman", "Liberation Serif", "DejaVu Serif"],
-        "mathtext.fontset": "stix",
+        "mathtext.fontset": "custom",
+        "mathtext.rm":  "Times New Roman",
+        "mathtext.it":  "Times New Roman:italic",
+        "mathtext.bf":  "Times New Roman:bold",
+        "mathtext.sf":  "Times New Roman",
+        "mathtext.tt":  "Times New Roman",
+        "mathtext.cal": "Times New Roman:italic",
+        "mathtext.fallback": "stix",
         "font.size": 8,
         "axes.labelsize": 8.5,
         "axes.titlesize": 9,

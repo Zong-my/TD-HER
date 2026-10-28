@@ -1,0 +1,37 @@
+{
+  "id": "fnp_equipment_conditioned_fit_v1",
+  "degree": 6,
+  "fit_horizons_s": [
+    5.0,
+    10.0,
+    15.0,
+    20.0
+  ],
+  "component_dt_s": 0.001,
+  "range_interior_fraction": 0.95,
+  "inertia_scales": [
+    0.2,
+    0.3,
+    0.4,
+    0.5,
+    0.6,
+    0.7,
+    0.8,
+    0.9,
+    1.0,
+    1.1,
+    1.2,
+    1.3,
+    1.4,
+    1.5,
+    1.6,
+    1.7,
+    1.8,
+    1.9,
+    2.0
+  ],
+  "root_tolerance_s": "Unchanged max(0.005 s, 0.005 * independent convolution root)",
+  "range_selection": "For known equipment and inertia, prepare the direct-convolution root for each possible single outage before event inference; choose the smallest permitted fit horizon with that root <= 0.95*horizon. No benchmark residual selects the range. The FNP output is obtained from the degree-6 polynomial, never replaced with the direct root.",
+  "original_method_boundary": "Uses Liu2020 Eq.(8)-(17) and recommended degree/range bounds; this equipment-conditioned range selection is a disclosed adaptation choice, not an alleged author implementation.",
+  "failure": "No reference root inside 19 s, unsupported unit identity, or no eligible polynomial root produces unavailable/no-valid-root; never extend range after test errors."
+}

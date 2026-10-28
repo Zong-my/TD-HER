@@ -5,6 +5,14 @@ Experiment 1: Main method comparison on IEEE 39 (ms=10, Gen-only).
 8 models × 3 disturbance types × 2 targets × 4 metrics + inference speed.
 """
 
+# Resolve source imports independently of the caller's working directory.
+import sys as _tdher_sys
+from pathlib import Path as _TDHERPath
+_tdher_repo = next(x for x in _TDHERPath(__file__).resolve().parents if (x / "tdher_paths.py").is_file())
+if str(_tdher_repo) not in _tdher_sys.path:
+    _tdher_sys.path.insert(0, str(_tdher_repo))
+from tdher_paths import REPO_ROOT, WORK_ROOT, DATA_ROOT, RESULTS_ROOT, data_path, work_path
+
 import os
 import sys
 import json
@@ -636,9 +644,9 @@ def run_experiment1(rep_dir: str, adj_path: str, result_dir: str,
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('--rep-dir', default='data/ieee39_v8_80_10_10')
-    parser.add_argument('--adj-path', default='data/ieee39_v8/adjacency/adjacency.npy')
-    parser.add_argument('--result-dir', default='results/ieee39/exp1')
+    parser.add_argument('--rep-dir', default=str(data_path('ieee39_v8_80_10_10')))
+    parser.add_argument('--adj-path', default=str(data_path('ieee39_v8/adjacency/adjacency.npy')))
+    parser.add_argument('--result-dir', default=str(work_path('results/ieee39/exp1')))
     parser.add_argument('--ms', type=int, default=10)
     parser.add_argument('--device', default='cuda')
     parser.add_argument('--models', nargs='+', choices=EXP1_MODELS, default=None)

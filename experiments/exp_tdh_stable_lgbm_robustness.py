@@ -10,6 +10,14 @@ unstable under measurement noise, one-step gaps, or timestamp slips.
 This is a diagnostic prototype. It does not overwrite Exp1 or TD-HER artifacts.
 """
 
+# Resolve source imports independently of the caller's working directory.
+import sys as _tdher_sys
+from pathlib import Path as _TDHERPath
+_tdher_repo = next(x for x in _TDHERPath(__file__).resolve().parents if (x / "tdher_paths.py").is_file())
+if str(_tdher_repo) not in _tdher_sys.path:
+    _tdher_sys.path.insert(0, str(_tdher_repo))
+from tdher_paths import REPO_ROOT, WORK_ROOT, DATA_ROOT, RESULTS_ROOT, data_path, work_path
+
 import argparse
 import csv
 import json
@@ -50,7 +58,7 @@ from experiments.exp_tdh_robustness import (  # noqa: E402
     load_sensor_raw_csv_level_data,
 )
 
-OUT_DIR = Path("results/ieee39/tdher_robustness/stable_lgbm")
+OUT_DIR = Path(str(work_path('results/ieee39/tdher_robustness/stable_lgbm')))
 CHANNEL_PREFIXES = ("ANGL_", "FREQ_", "POWR_", "SPD_", "VOLT_")
 RAW_STEP_TOKENS = {str(i) for i in range(MS + 1)}
 

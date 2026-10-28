@@ -12,6 +12,14 @@ Routers evaluated:
   4. affine_convex_blend: convex blend followed by restricted affine calibration.
 """
 
+# Resolve source imports independently of the caller's working directory.
+import sys as _tdher_sys
+from pathlib import Path as _TDHERPath
+_tdher_repo = next(x for x in _TDHERPath(__file__).resolve().parents if (x / "tdher_paths.py").is_file())
+if str(_tdher_repo) not in _tdher_sys.path:
+    _tdher_sys.path.insert(0, str(_tdher_repo))
+from tdher_paths import REPO_ROOT, WORK_ROOT, DATA_ROOT, RESULTS_ROOT, data_path, work_path
+
 import json
 import os
 import pickle
@@ -45,7 +53,7 @@ from experiments.exp4_generalization import (  # noqa: E402
 # repaired final-cache protocol. See coding_exp_plan.md for the audit note.
 ROUTER_MODELS = [m for m in MODELS if m != "TabR"]
 
-OUT_DIR = Path("results/ieee39/exp_tdh_router")
+OUT_DIR = Path(str(work_path('results/ieee39/exp_tdh_router')))
 EXPERT_DIR = OUT_DIR / "experts"
 ADAPTER_DIR = OUT_DIR / "adapters"
 ADAPTER_N_FOLDS = 3
@@ -103,7 +111,7 @@ def get_cached_prediction(model_name: str, split: str, data: dict,
 def load_exp1_lgb_specs() -> dict:
     specs = {}
     for target in ["y1", "y2"]:
-        with open(Path("results/ieee39/exp1/LightGBM") / f"{target}_lgb_model.pkl",
+        with open(Path(str(work_path('results/ieee39/exp1/LightGBM'))) / f"{target}_lgb_model.pkl",
                   "rb") as f:
             model = pickle.load(f)
         params = model.get_params()

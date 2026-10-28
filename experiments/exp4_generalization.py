@@ -13,6 +13,14 @@ Usage:
     python experiments/exp4_generalization.py
 """
 
+# Resolve source imports independently of the caller's working directory.
+import sys as _tdher_sys
+from pathlib import Path as _TDHERPath
+_tdher_repo = next(x for x in _TDHERPath(__file__).resolve().parents if (x / "tdher_paths.py").is_file())
+if str(_tdher_repo) not in _tdher_sys.path:
+    _tdher_sys.path.insert(0, str(_tdher_repo))
+from tdher_paths import REPO_ROOT, WORK_ROOT, DATA_ROOT, RESULTS_ROOT, data_path, work_path
+
 import os
 import sys
 import json
@@ -44,10 +52,10 @@ SEED = 42
 torch.manual_seed(SEED)
 np.random.seed(SEED)
 
-REP_DIR = 'data/ieee39_v8_80_10_10'
-ADJ_PATH = 'data/ieee39_v8/adjacency/adjacency.npy'
-EXP1_DIR = 'results/ieee39/exp1'
-EXP4_DIR = 'results/ieee39/exp4'
+REP_DIR = str(data_path('ieee39_v8_80_10_10'))
+ADJ_PATH = str(data_path('ieee39_v8/adjacency/adjacency.npy'))
+EXP1_DIR = str(work_path('results/ieee39/exp1'))
+EXP4_DIR = str(work_path('results/ieee39/exp4'))
 MS = 10
 
 LEVELS = {

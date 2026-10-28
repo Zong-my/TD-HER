@@ -10,6 +10,14 @@ Usage:
     python data_proc/extract_features.py --system ieee300 --data-dir /path/to/v2
 """
 
+# Resolve source imports independently of the caller's working directory.
+import sys as _tdher_sys
+from pathlib import Path as _TDHERPath
+_tdher_repo = next(x for x in _TDHERPath(__file__).resolve().parents if (x / "tdher_paths.py").is_file())
+if str(_tdher_repo) not in _tdher_sys.path:
+    _tdher_sys.path.insert(0, str(_tdher_repo))
+from tdher_paths import REPO_ROOT, WORK_ROOT, DATA_ROOT, RESULTS_ROOT, data_path, work_path
+
 import re
 import os
 import argparse
@@ -284,12 +292,8 @@ IEEE39_CONFIG = {
 }
 
 def _load_ieee300_weights():
-    """Load IEEE300 generator inertia weights from the bundled reference table
-    at ``simulation/ieee300_gen_Hs.csv`` (resolved relative to the project root).
-    """
-    from pathlib import Path
-    csv_path = str(Path(__file__).resolve().parent.parent
-                   / 'simulation' / 'ieee300_gen_Hs.csv')
+    """Load IEEE300 generator inertia weights from CSV."""
+    csv_path = str(REPO_ROOT / "simulation/ieee300_gen_Hs.csv")
     try:
         import csv
         weights = []

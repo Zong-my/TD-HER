@@ -14,6 +14,14 @@ mainline unless the held-out results justify it.
 
 from __future__ import annotations
 
+# Resolve source imports independently of the caller's working directory.
+import sys as _tdher_sys
+from pathlib import Path as _TDHERPath
+_tdher_repo = next(x for x in _TDHERPath(__file__).resolve().parents if (x / "tdher_paths.py").is_file())
+if str(_tdher_repo) not in _tdher_sys.path:
+    _tdher_sys.path.insert(0, str(_tdher_repo))
+from tdher_paths import REPO_ROOT, WORK_ROOT, DATA_ROOT, RESULTS_ROOT, data_path, work_path
+
 import argparse
 import csv
 import json
@@ -63,9 +71,9 @@ from experiments.exp_tdh_robustness import (  # noqa: E402
 
 
 SCENARIO = "L1_same_dist"
-STABLE_DIR = Path("results/ieee39/tdher_robustness/stable_lgbm")
-OUT_DIR = Path("results/ieee39/tdher_robustness/robust_router")
-PAPER_TABLE_DIR = Path("results/paper_tables")
+STABLE_DIR = Path(str(work_path('results/ieee39/tdher_robustness/stable_lgbm')))
+OUT_DIR = Path(str(work_path('results/ieee39/tdher_robustness/robust_router')))
+PAPER_TABLE_DIR = Path(str(work_path('results/paper_tables')))
 
 STABLE_RUNS = {
     "stable_core_aug": "stable_core__aug_sensor_noise_low",

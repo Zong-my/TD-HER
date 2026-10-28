@@ -1,248 +1,195 @@
 # TD-HER
 
-<p align="center">
-  <img src="assets/fig02_tdher_overview.png" alt="TD-HER Framework Overview" width="100%">
-</p>
+**Early Prediction of Power System Frequency Extremum and Its Arrival Time via
+Target-Dependent Heterogeneous Expert Routing**
 
-> **Note** — This repository accompanies the manuscript currently under review. The preprocessed dataset is publicly available on [Hugging Face Datasets](https://huggingface.co/datasets/babycow/TD-HER-Dataset).
+TD-HER combines a frozen heterogeneous expert bank, target-specific convex
+routing, and selective adaptation. It predicts the signed frequency extremum
+and its arrival time from an early post-disturbance measurement window.
 
----
+This is a **source-only release**. It contains Python implementations,
+simulation input cases, experiment configuration and documentation.
+It contains **no trained weights, prediction arrays, experiment results,
+result tables, simulation trajectories, cached features or training logs**.
+The existing processed benchmark is distributed separately on
+[Hugging Face](https://huggingface.co/datasets/babycow/TD-HER-Dataset).
+Do not download data or save generated artifacts inside this checkout.
 
-## Highlights
+## Method
 
-- **Target-dependent routing.** The frequency extremum (`y₁`) and the time to extremum (`y₂`) require different evidence sources; TD-HER fits two simplex-constrained routes, one per target, instead of a shared backbone.
-- **Certified adapter admission.** Under distribution shift, a few-shot LightGBM adapter is admitted only when its OOF improvement clears a paired-bootstrap practical-margin certificate (`τ = 0.20`).
-- **Heterogeneous expert bank (K).** LightGBM, KAN, FT-Transformer (tabular, Rep. A) · ConvLSTM, PatchTST (temporal, Rep. B) · Mamba (sequence, Rep. B) · ST-GCN (graph, Rep. C).
-- **Three-level generalization protocol.** L1 same-distribution, L2 cross-condition few-shot, L3 cross-topology few-shot.
-- **Industrial-grade latency.** ~3.6 ms / sample on a single GPU (parallel experts), ~17.2 ms on a CPU-only server (sequential, excluding Mamba) — both well within the 100 ms early-assessment window.
+1. Train the base experts on the source training split and select their settings
+   using the designated validation split. Freeze them before calibration.
+2. For each evaluation scenario, obtain base-expert predictions on the
+   held-out calibration events. A LightGBM adapter is trained with source
+   samples and the available new calibration labels. Its calibration
+   predictions are out of fold; its final fit uses all available calibration
+   events.
+3. Decide admission separately for each target. The current rule admits an
+   adapter when its out-of-fold calibration MAE is at most
+   `(1 - tau) * best_base_calibration_MAE`, with `tau = 0.20`.
+4. Fit nonnegative, unit-sum weights separately for the two targets on the
+   admitted prediction columns. Apply the bounded affine correction and
+   project the arrival-time prediction onto the nonnegative domain.
 
----
+The additional paired-bootstrap admission condition is **not part of the
+current TD-HER rule**. Functions named `certified_*` remain only as comparison
+implementations for the historical two-condition variant. Bootstrap analysis
+of prediction differences is distinct from the deployed admission decision.
 
-## Repository Layout
+The evaluated base bank contains LightGBM, KAN, ConvLSTM, PatchTST, Mamba,
+ST-GCN and FT-Transformer. `models/` contains their architecture source code,
+not trained model files. Additional model modules support explicitly named
+comparison experiments; they do not enlarge the seven-expert bank.
 
-```
-TD-HER/
-├── configs/                     experiment_config.yaml — paths and hyperparameter defaults
-├── data/                        Dataset guide and versioned paper-aligned PSS/E RAW/DYR cases
-├── data_proc/                   Data pipeline — PSS/E xlsx → tabular / tensor / graph representations
-├── models/                      Heterogeneous expert architectures + shared NN scaffolding
-├── experiments/                 Paper experiments + figure / table rendering
-├── utils/                       Evaluation, mRMR feature selection, timing utilities
-├── simulation/                  PSS/E reference scripts and IEEE 300 inertia table
-├── results/                     Experiment outputs (placeholder, see results/README.md)
-├── requirements.txt             Pinned Python dependencies
-├── LICENSE                      MIT
-└── README.md                    This file
-```
+## Layout
 
----
+| Path | Contents |
+|---|---|
+| `models/` | Expert architectures, static-feature branches and multi-task control heads |
+| `data_proc/` | Feature extraction, tabular/tensor/graph representations and adjacency construction |
+| `experiments/exp1_main_comparison.py` | Base-expert training and validation-driven selection |
+| `experiments/train_single_model.py` | Per-model training and hyperparameter search |
+| `experiments/exp_tdh_router.py` | Target-wise admission, convex routing, affine correction and comparison rules |
+| `experiments/exp_tdh_router_ieee300.py` | Routing for the 300-bus benchmark |
+| `experiments/exp_r2_*.py` | Multi-task controls, attribution and diagnostic analyses |
+| `experiments/resubmission_v3/` | Common-bank and capacity-control implementations |
+| `experiments/resubmission_v4/` | Label budgets, new-event evaluation, published-predictor and second-backbone controls |
+| `analytical_comparators/` | System-frequency-response and analytical nadir-prediction implementations |
+| `simulation/` | PSS/E data-generation scripts and simulation input parameters |
+| `data/psse_cases/` | Network and dynamic input records; see its provenance note |
+| `configs/` | Design settings and configuration interfaces |
+| `tests/` | Synthetic, data-free checks of routing and release boundaries |
+| `tdher.py`, `tdher_paths.py` | External-workspace launcher and path configuration |
 
-## Quick Start
+See [experiment workflows](docs/EXPERIMENTS.md),
+[data interfaces](data/README.md),
+[simulation instructions](simulation/README.md), and
+[release policy](docs/RELEASE_POLICY.md).
 
-All paths in scripts and configs are **relative to the project root**. Always run commands from inside `TD-HER/`:
+## Installation
+
+Use a separate Python environment. The machine-learning code uses Python 3.12.
+PSS/E generation uses its own Windows/Python environment and is independent
+of the machine-learning installation.
 
 ```bash
+git clone https://github.com/Zong-my/TD-HER.git
 cd TD-HER
+python3.12 -m venv ../TD-HER-venv
+source ../TD-HER-venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 ```
 
-### 1 · Environment
+Install a PyTorch build appropriate for your hardware before the optional
+GPU extensions. Mamba requires its compatible `mamba-ssm` implementation;
+ST-GCN requires `torch-geometric`; KAN uses `efficient-kan`.
+Install the applicable packages from requirements-optional.txt.
+See [dependencies](docs/DEPENDENCIES.md) for the tested environment and
+optional packages. PSS/E, its licence and vendor binaries are not included.
+
+## External workspace
 
 ```bash
-# Python 3.12 (conda recommended)
-conda create -n tdher python=3.12 -y
-conda activate tdher
-pip install -r requirements.txt
+export TDHER_WORKDIR="$HOME/TD-HER-work"
+export TDHER_DATA_ROOT="$TDHER_WORKDIR/data"
+python tdher.py paths
 ```
 
-GPU dependencies:
+The default workspace is the sibling directory `../TD-HER-work`.
+Both variables must point outside the source checkout. The supported
+`tdher.py run` launcher also rejects writes into the checkout.
 
-- `torch` (CUDA 12.x build matching your driver)
-- `mamba-ssm` (requires CUDA-capable NVCC; CPU-only servers may skip Mamba)
-- `torch-geometric` (for the ST-GCN graph expert)
+The expected processed-data layout is:
 
-### 2 · Data
+```text
+TD-HER-work/
+  data/
+    ieee39/{repA,repB,repC,csv,adjacency}/
+    ieee300/{repA,repB,repC,adjacency}/
+    raw/                     # optional raw simulation workbooks
+  results/                   # created by your own runs
+  analytical/                # your own analytical preparation
+  protocols/                 # your own study manifests, when needed
+```
 
-**Option A — Download preprocessed representations (recommended):**
+The repository names `ieee39_v8_80_10_10` and
+`ieee300_v2_posttrigger` in legacy interfaces resolve to
+`ieee39` and `ieee300` through `tdher_paths.py`.
 
-```bash
-# Requires: pip install huggingface_hub
-python -c "
+A dataset download, if desired, must target the external data directory:
+
+```python
+import os
 from huggingface_hub import snapshot_download
-snapshot_download('babycow/TD-HER-Dataset', repo_type='dataset', local_dir='data/representations')
-"
+
+snapshot_download(
+    repo_id="babycow/TD-HER-Dataset",
+    repo_type="dataset",
+    local_dir=os.environ["TDHER_DATA_ROOT"],
+)
 ```
 
-**Option B — Build from raw PSS/E simulations:**
+Check the resulting directory structure against the layout above. The
+separate dataset release is an input resource, not an output bundle from
+the additional studies.
 
-Versioned paper-aligned PSS/E RAW/DYR records for the IEEE 39-bus and IEEE
-300-bus configurations are provided in [`data/psse_cases/`](data/psse_cases/),
-together with provenance, validation scope, and SHA-256 checksums. The 39-bus
-pair documents the mixed renewable sensitivity configuration while retaining
-the historical bus-33 Type-4 wind plant; the processed dataset remains the
-authoritative input for reproducing the paper's training and evaluation.
+## Running the core pipeline
 
-Place raw simulations under `data/ieee39_v8/` and `data/ieee300_v2/` per the layout in [`data/README.md`](data/README.md), then:
+Inspect the CLI before selecting the compute budget:
 
 ```bash
-python -m data_proc.extract_features          # xlsx → CSV (parallel, ~6 h)
-python -m data_proc.build_adjacency           # RAW → 10×10 / 69×69 adjacency
-python -m data_proc.build_representations     # CSV → Rep. A / B / C tensors
+python tdher.py run experiments/train_single_model.py -- --help
+python tdher.py run experiments/exp1_main_comparison.py -- --help
+python tdher.py list
 ```
 
-### 3 · Reproduce a Single Result
+Train the seven base families through the comparison driver, or train one
+family at a time. For example:
 
 ```bash
-# Train all experts on the IEEE 39-bus L1 protocol
-python -m experiments.exp1_main_comparison
-
-# Fit TD-HER routes (L1 / L2 / L3) using the trained expert bank
-python -m experiments.exp_tdh_router
-
-# Re-render all manuscript figures from saved CSV tables
-python -m experiments.render_all_figures_v2
+python tdher.py run experiments/train_single_model.py -- --model PatchTST --n-trials 20
+python tdher.py run experiments/exp1_main_comparison.py --   --models LightGBM KAN ConvLSTM PatchTST Mamba ST-GCN FT-Transformer
 ```
 
-### 4 · Reproduce the Full Pipeline
-
-End-to-end on a single RTX-class GPU + 40-core CPU takes ~55–65 hours:
+The exact accepted model identifiers are listed by `--help`.
+After all required expert fits and feature-selection records exist in your
+external workspace:
 
 ```bash
-# Phase 1 — Data pipeline                                            ~8–12 h
-python -m data_proc.extract_features
-python -m data_proc.build_adjacency
-python -m data_proc.build_representations
-
-# Phase 2 — Expert bank (Sec. IV.B, Table II)                       ~12–16 h
-python -m experiments.exp1_main_comparison
-
-# Phase 3 — Generalization protocols (Sec. IV.C, Tables III–IV)     ~6 h
-python -m experiments.exp4_generalization
-python -m experiments.exp_tdh_router
-
-# Phase 4 — Sensitivity and ablation (Sec. IV.D–F, Figs. 6–9)       ~4 h
-python -m experiments.exp_tdh_expert_sensitivity
-
-# Phase 5 — Deployment-oriented analyses (Sec. IV.G, Figs. 10–11)   ~4 h
-python -m experiments.exp_tdh_multi_window
-python -m experiments.exp_tdh_robustness
-python -m experiments.exp_tdh_stable_lgbm_robustness
-python -m experiments.exp_tdh_robust_router
-python -m experiments.exp_tdh_quality_router
-python -m experiments.exp_tdh_quality_router_sweep
-python -m experiments.exp_tdh_pipeline_timing
-
-# Phase 6 — IEEE 300-bus scalability (Sec. IV.H)                    ~10 h
-python -m experiments.exp7_scalability
-python -m experiments.exp_tdh_router_ieee300
-
-# Phase 7 — Interpretability (supplementary figS4–figS9)            ~2 h
-python -m experiments.exp5_interpretability
-
-# Phase 8 — Audit reports (reproducibility audit)                   ~10 min
-python -m experiments.audit_dataset_representations
-python -m experiments.audit_tdh_router --fail-on-error
-python -m experiments.audit_ieee300_exp7
-python -m experiments.audit_ieee300_tdh_router --fail-on-error
-
-# Phase 9 — Tables and figures
-python -m experiments.export_tii_tables
-python -m experiments.render_tii_artifacts \
-  --table-dir results/paper_tables \
-  --router-dir results/ieee39/exp_tdh_router \
-  --ieee300-dir results/ieee300/exp7_rebuild \
-  --out-dir results/paper_artifacts
-python -m experiments.render_all_figures_v2
+python tdher.py run experiments/exp_tdh_router.py
 ```
 
----
+The current TD-HER output is the margin-rule, affine-corrected,
+nonnegative-arrival-time variant. Historical comparison variants are named
+separately in the generated output. No test labels are used to choose
+admission or route weights.
 
-## Mapping from Paper Sections to Code
+The extension drivers require their declared upstream inputs: for example,
+base-expert fits for control comparisons, and independently generated
+analytical/cohort inputs for native-nadir comparisons. They are not supplied
+as precomputed result files. [EXPERIMENTS.md](docs/EXPERIMENTS.md) explains the
+dependency order and configuration preparation.
 
-| Manuscript section / artifact          | Script                                                                          | Output                                                            |
-|----------------------------------------|---------------------------------------------------------------------------------|-------------------------------------------------------------------|
-| Sec. III · TD-HER framework            | `experiments/exp_tdh_router.py`                                                 | Routes, OOF admission decisions, affine parameters                |
-| Sec. IV.A · Data pipeline              | `data_proc/{extract_features,build_representations,build_adjacency}.py`         | `data/representations/`                                           |
-| Sec. IV.B · Expert bank (Table II)     | `experiments/exp1_main_comparison.py`                                           | Per-expert metrics, prediction arrays                             |
-| Sec. IV.C · L1 / L2 / L3 protocols     | `experiments/exp4_generalization.py`, `exp_tdh_router.py`                       | `results/ieee39/exp4/`, `exp_tdh_router/`                         |
-| Sec. IV.D · Threshold sensitivity (Fig. 6) | `experiments/exp_tdh_router.py` (sweep mode)                                | `tdher_threshold_sensitivity.csv`                                 |
-| Sec. IV.E · Expert sensitivity (Fig. 7) | `experiments/exp_tdh_expert_sensitivity.py`                                    | `tdher_expert_leave_one_out.csv`, `tdher_expert_subset_size.csv`  |
-| Sec. IV.F · Routing weight analysis (Figs. 8–9) | `experiments/exp_tdh_router.py`                                        | `tdher_final_routing_weights.csv`, `tdher_route_conflict_diagnostics.csv` |
-| Sec. IV.G · Multi-window (Fig. 10)     | `experiments/exp_tdh_multi_window.py`                                           | `tdher_multiwindow_l1.csv`, `tdher_multiwindow_weights.csv`       |
-| Sec. IV.G · Robustness                 | `experiments/exp_tdh_robustness.py`, `exp_tdh_robust_router.py`, `exp_tdh_stable_lgbm_robustness.py`, `exp_tdh_quality_router{,_sweep}.py` | `tdher_robustness_redesign.csv`, `tdher_quality_router*.csv` |
-| Sec. IV.G · Pipeline timing (Fig. 11)  | `experiments/exp_tdh_pipeline_timing.py`                                        | `pipeline_timing_gpu.json`, `pipeline_timing_cpu.json`            |
-| Sec. IV.H · IEEE 300 scalability       | `experiments/exp7_scalability.py`, `exp_tdh_router_ieee300.py`                  | `ieee300_scalability.csv`, `ieee300_tdher_routing.csv`            |
-| Supp. · Interpretability (figS4–figS9) | `experiments/exp5_interpretability.py`                                          | mRMR top-30 ranking, ALE marginal effects, KAN activation profiles|
-| Supp. · Audit reports                  | `experiments/audit_{dataset_representations,tdh_router,ieee300_exp7,ieee300_tdh_router}.py` | `*/audit_report.json`                                |
-| All main figures                       | `experiments/render_all_figures_v2.py`                                          | `results/paper_artifacts/figures/`                                |
-| LaTeX table fragments                  | `experiments/{export_tii_tables,render_tii_artifacts}.py`                       | `results/paper_artifacts/latex/`                                  |
-| Master orchestrator                    | `experiments/run_all.py`                                                        | Sequential run of all phases                                      |
+## Validation
 
----
-
-## Expert Bank Specification
-
-| Family    | Expert         | Representation | Key mechanism            | Library                         |
-|-----------|----------------|----------------|--------------------------|---------------------------------|
-| Tabular   | LightGBM       | Rep. A         | Gradient boosting        | `lightgbm`                      |
-| Tabular   | KAN            | Rep. A         | Learnable spline activations | `efficient-kan`             |
-| Tabular   | FT-Transformer | Rep. A         | Feature attention        | Custom (`models/ft_transformer_model.py`) |
-| Temporal  | ConvLSTM       | Rep. B         | Convolutional recurrence | Custom                          |
-| Temporal  | PatchTST       | Rep. B         | Channel-independent patch Transformer | Custom (`nn.TransformerEncoder`) |
-| Sequence  | Mamba          | Rep. B         | Selective state-space    | `mamba-ssm`                     |
-| Graph     | ST-GCN         | Rep. C         | Graph + temporal conv.   | `torch-geometric`               |
-
-All experts are trained independently on the training partition `D_tr` and frozen at calibration time. Hyperparameters are tuned per-expert via Optuna (50–100 trials, `MedianPruner`).
-
----
-
-## Routing Algorithm
-
-For each target `j ∈ {1, 2}`, TD-HER fits routing weights `w_j` on the OOF-admitted expert set `M_j` by minimizing the calibration MAE under simplex constraints:
-
-```
-minimize    || M_j w_j − y_j ||₁
-subject to  w_j ⪰ 0,   ∑ w_j = 1
+```bash
+PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s tests -v
+python tools/check_release.py
 ```
 
-Followed by:
+These checks use synthetic fixtures or source inspection. They do not
+retrain experts, re-evaluate the benchmark or assert published MAE values.
+Full simulation requires a licensed PSS/E installation; full learning
+experiments require the external input data and suitable compute resources.
 
-- **Affine calibration:** `ŷ_j = α_j · (w_jᵀ M_j) + β_j`
-- **Physical projection (y₂ only):** `ŷ_2 ← max(0, ŷ_2)` to enforce `t_Δf ≥ 0`
+## Citation and licence
 
-The few-shot adapter is admitted when both:
+Please cite the TD-HER article by its final bibliographic record when
+available. This source release does not assign a DOI or publication status
+to the manuscript.
 
-1. **Practical margin:** OOF MAE improvement ≥ `τ = 0.20` (relative)
-2. **Statistical certificate:** paired-bootstrap CI excludes zero (1000 resamples, α = 0.05)
-
----
-
-## Reproducibility
-
-- Random seed 42 is applied to NumPy, PyTorch (`torch.manual_seed`, `torch.cuda.manual_seed`), Optuna (`TPESampler(seed=42)`), and split generation.
-- Determinism flags (`torch.use_deterministic_algorithms(True)`) are enabled where supported by the underlying expert.
-- Each experiment writes an `audit_report.json` documenting split sizes, prediction-label alignment, and metric recomputation against exported CSV tables.
-- All paper-facing CSV tables under `results/paper_tables/` are auto-validated against saved prediction arrays before figures are rendered.
-- The paper-aligned IEEE 39-bus and IEEE 300-bus PSS/E RAW/DYR records are
-  released under [`data/psse_cases/`](data/psse_cases/) with file-level
-  checksums so that the reported network and dynamic-equipment configurations can be independently inspected.
-
----
-
-## Citation
-
-```
-Manuscript under review; relevant content to be updated.
-```
-
----
-
-## License
-
-Released under the [MIT License](LICENSE). The test systems are public-domain reference networks; the preprocessed dataset is
-publicly available at [huggingface.co/datasets/babycow/TD-HER-Dataset](https://huggingface.co/datasets/babycow/TD-HER-Dataset).
-
----
-
-## Contact
-
-Issues and pull requests are welcome on GitHub.
+The code is distributed under the [MIT licence](LICENSE). Third-party
+libraries retain their own licences. Simulation cases are research
+derivatives of IEEE test systems; original case provenance and applicable
+source terms remain in force. The PSS/E software itself is not redistributed.

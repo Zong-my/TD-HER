@@ -1,0 +1,4 @@
+{
+  "addendum_id": "validation_identity_exclusion",
+  "rule": "Exclude validation workbooks with hashes present among eligible training workbooks; never use test errors for selection."
+}

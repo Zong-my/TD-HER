@@ -13,6 +13,14 @@ This script does NOT modify any existing results or model artifacts.
 All outputs are saved to a new dedicated directory.
 """
 
+# Resolve source imports independently of the caller's working directory.
+import sys as _tdher_sys
+from pathlib import Path as _TDHERPath
+_tdher_repo = next(x for x in _TDHERPath(__file__).resolve().parents if (x / "tdher_paths.py").is_file())
+if str(_tdher_repo) not in _tdher_sys.path:
+    _tdher_sys.path.insert(0, str(_tdher_repo))
+from tdher_paths import REPO_ROOT, WORK_ROOT, DATA_ROOT, RESULTS_ROOT, data_path, work_path
+
 import json
 import os
 import pickle
@@ -52,7 +60,7 @@ from models.tabr_model import TabRModel
 from models.kan_model import build_kan_from_trial
 
 # ── Configuration ────────────────────────────────────────────────
-OUT_DIR = Path("results/ieee39/tdher_pipeline_timing")
+OUT_DIR = Path(str(work_path('results/ieee39/tdher_pipeline_timing')))
 N_WARMUP = 20
 N_RUNS = 100
 # Exclude TabR from router models (same as exp_tdh_router.py)
@@ -60,7 +68,7 @@ ROUTER_MODELS = [m for m in MODELS if m != "TabR"]
 
 # L1 routing weights from audited results
 ROUTING_WEIGHTS_PATH = Path(
-    "results/paper_tables/tdher_final_routing_weights.csv"
+    str(work_path('results/paper_tables/tdher_final_routing_weights.csv'))
 )
 
 

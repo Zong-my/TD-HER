@@ -1,0 +1,31 @@
+{
+  "protocol_id": "second_backbone_convlstm_user_run",
+  "backbone_configuration": {
+    "model_kwargs": {},
+    "optimizer": {},
+    "expected_parameter_count": null
+  },
+  "frozen_sources": {
+    "convlstm_expert": {
+      "best_params": {
+        "path": null,
+        "sha256": null
+      }
+    }
+  },
+  "strategies": {
+    "mmoe": {
+      "head": {
+        "num_experts": 4,
+        "expert_hidden": 64,
+        "tower_hidden": 32
+      }
+    }
+  },
+  "outputs": {
+    "root": null,
+    "smoke_root": null
+  },
+  "never_write": [],
+  "_template_note": "Bind settings from your own training/validation-selected ConvLSTM expert, input feature dimensions and external output paths. This template contains no fitted author parameters."
+}

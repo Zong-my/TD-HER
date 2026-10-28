@@ -12,6 +12,14 @@ Usage:
     python data_proc/build_adjacency.py
 """
 
+# Resolve source imports independently of the caller's working directory.
+import sys as _tdher_sys
+from pathlib import Path as _TDHERPath
+_tdher_repo = next(x for x in _TDHERPath(__file__).resolve().parents if (x / "tdher_paths.py").is_file())
+if str(_tdher_repo) not in _tdher_sys.path:
+    _tdher_sys.path.insert(0, str(_tdher_repo))
+from tdher_paths import REPO_ROOT, WORK_ROOT, DATA_ROOT, RESULTS_ROOT, data_path, work_path
+
 import re
 import numpy as np
 from pathlib import Path
@@ -329,9 +337,9 @@ def build_fullbus_adjacency(raw_path: str, output_dir: str = None) -> dict:
 
 if __name__ == '__main__':
     # IEEE 39 Gen-only (10 generators)
-    ieee39_raw = "data/topology/IEEE39.RAW"
+    ieee39_raw = str(REPO_ROOT / "data/psse_cases/IEEE39_paper_aligned_mixed_v2.raw")
     ieee39_gens = [30, 31, 32, 33, 34, 35, 36, 37, 38, 39]
-    ieee39_out = "data/ieee39_v8/adjacency"
+    ieee39_out = str(data_path('ieee39_v8/adjacency'))
 
     logger.info("=== IEEE 39 Gen-only adjacency ===")
     result39 = build_gen_adjacency(ieee39_raw, ieee39_gens, ieee39_out)
@@ -339,15 +347,15 @@ if __name__ == '__main__':
     print(f"Adjacency matrix:\n{np.round(result39['adjacency'], 3)}")
 
     # IEEE 39 Full-bus (for Experiment 3)
-    ieee39_fullbus_out = "data/ieee39_v8/adjacency_fullbus"
+    ieee39_fullbus_out = str(data_path('ieee39_v8/adjacency_fullbus'))
     logger.info("\n=== IEEE 39 Full-bus adjacency ===")
     result39_full = build_fullbus_adjacency(ieee39_raw, ieee39_fullbus_out)
     print(f"IEEE 39 full-bus adjacency ({result39_full['adjacency'].shape})")
 
     # IEEE 300 Gen-only (69 generators)
-    ieee300_raw = "data/topology/IEEE300Bus_modified_noHVDC_v2.raw"
+    ieee300_raw = str(REPO_ROOT / "data/psse_cases/IEEE300_paper_aligned_v2.raw")
     ieee300_gens = list(range(10000, 10069))
-    ieee300_out = "data/ieee300_v2/adjacency"
+    ieee300_out = str(data_path('ieee300_v2/adjacency'))
 
     logger.info("\n=== IEEE 300 Gen-only adjacency ===")
     result300 = build_gen_adjacency(ieee300_raw, ieee300_gens, ieee300_out)

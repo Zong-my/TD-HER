@@ -1,0 +1,64 @@
+{
+  "protocol_id": "comparator_fnp_bpnn_v1",
+  "model": {
+    "candidate_grid": {
+      "hidden_units": [
+        4,
+        8,
+        16
+      ],
+      "learning_rate_init": [
+        0.01,
+        0.001
+      ],
+      "max_iter_full": 3000,
+      "max_iter_smoke": 200,
+      "n_iter_no_change": 50,
+      "tol": 1e-06
+    },
+    "seeds": {
+      "search": 123,
+      "final": [
+        123,
+        42,
+        52,
+        62
+      ]
+    }
+  },
+  "final": {
+    "seeds": [
+      123,
+      42,
+      52,
+      62
+    ]
+  },
+  "evaluation": {
+    "common_cohort": {
+      "conditions": [
+        "OK",
+        "compatible_primary"
+      ],
+      "source_files": [],
+      "expected_counts": {}
+    },
+    "printed_references_frozen": {}
+  },
+  "analytical_inputs": {},
+  "extraction": {
+    "splits": [
+      "train",
+      "val",
+      "cross_cond_finetune",
+      "cross_cond_topo_finetune"
+    ],
+    "raw_pools": {},
+    "missing_policy": "fail and investigate input identity",
+    "training_cohort_rule": {
+      "id": "primary-compatible-events"
+    }
+  },
+  "never_write": [],
+  "_template_note": "Design-only template. Bind your own upstream inputs and derived manifest fields before execution; no author result values are supplied."
+}

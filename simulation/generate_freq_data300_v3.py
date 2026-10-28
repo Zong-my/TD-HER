@@ -412,18 +412,18 @@ if __name__ == "__main__":
     err = psspy.psseinit(200000)
     assert err == 0, "PSS/E initialization failed"
 
-    log_path = r'E:\simulation\code\psse3304_tutorials\logs\log300_v3.txt'
+    log_path = os.path.join(os.environ["TDHER_SIM_OUTPUT"], "log300_v3.txt")
     psspy.progress_output(2, log_path)
     psspy.alert_output(2, log_path)
     psspy.report_output(2, log_path)
     psspy.prompt_output(2, log_path)
 
     # ── File paths ──
-    base_path = r'E:\simulation\code\psse3304_tutorials\ieee300\Outputs\IEEE300\V1'
-    sav_file = r'E:\simulation\code\psse3304_tutorials\Demo_Models\IEEE300\IEEE300.sav'
-    dyr_file = r'E:\simulation\code\psse3304_tutorials\Demo_Models\IEEE300\IEEE300_dyn_v2.dyr'
+    base_path = os.environ["TDHER_SIM_OUTPUT"]
+    sav_file = os.environ["TDHER_IEEE300_SAV"]
+    dyr_file = os.path.join(os.path.dirname(__file__), "..", "data", "psse_cases", "IEEE300_paper_aligned_v2.dyr")
     h_originals = pd.read_csv(
-        r'E:\simulation\code\psse3304_tutorials\ieee300\ieee300_gen_Hs.csv'
+        os.path.join(os.path.dirname(__file__), "ieee300_gen_Hs.csv")
     )
     gen_bus_nums = h_originals['bus_num'].values.flatten().tolist()
 

@@ -15,6 +15,14 @@ Outputs are written under:
 
 from __future__ import annotations
 
+# Resolve source imports independently of the caller's working directory.
+import sys as _tdher_sys
+from pathlib import Path as _TDHERPath
+_tdher_repo = next(x for x in _TDHERPath(__file__).resolve().parents if (x / "tdher_paths.py").is_file())
+if str(_tdher_repo) not in _tdher_sys.path:
+    _tdher_sys.path.insert(0, str(_tdher_repo))
+from tdher_paths import REPO_ROOT, WORK_ROOT, DATA_ROOT, RESULTS_ROOT, data_path, work_path
+
 import argparse
 import csv
 import json
@@ -36,15 +44,15 @@ from models.base_nn import NNTrainer  # noqa: E402
 
 
 SEED = 42
-REP_DIR = "data/ieee39_v8_80_10_10"
-ADJ_PATH = "data/ieee39_v8/adjacency/adjacency.npy"
-EXP1_DIR = "results/ieee39/exp1"
-EXP2_DIR = "results/ieee39/exp2"
+REP_DIR = str(data_path('ieee39_v8_80_10_10'))
+ADJ_PATH = str(data_path('ieee39_v8/adjacency/adjacency.npy'))
+EXP1_DIR = str(work_path('results/ieee39/exp1'))
+EXP2_DIR = str(work_path('results/ieee39/exp2'))
 MS_VALUES = [1, 5, 10, 15, 25]
 MODELS = ["LightGBM", "ConvLSTM", "PatchTST", "Mamba", "ST-GCN"]
-OUT_DIR = Path("results/ieee39/exp_tdh_multi_window")
-PAPER_TABLE_DIR = Path("results/paper_tables")
-PAPER_FIG_DIR = Path("results/paper_artifacts/figures")
+OUT_DIR = Path(str(work_path('results/ieee39/exp_tdh_multi_window')))
+PAPER_TABLE_DIR = Path(str(work_path('results/paper_tables')))
+PAPER_FIG_DIR = Path(str(work_path('results/paper_artifacts/figures')))
 STEP_MS = 10
 ROUTER_ORDER = [
     "best_expert",
@@ -694,7 +702,7 @@ def predict_lightgbm_for_window(ms: int, data: dict, params: dict,
 def predict_from_ms10_tdher_cache(model_name: str, data: dict,
                                   out_dir: Path) -> dict | None:
     """Reuse audited ms10 expert predictions from the main TD-HER cache."""
-    source_dir = Path("results/ieee39/exp_tdh_router/experts") / model_name
+    source_dir = Path(str(work_path('results/ieee39/exp_tdh_router/experts'))) / model_name
     val_src = source_dir / "val_preds.npy"
     test_src = source_dir / "test_preds.npy"
     if not (val_src.exists() and test_src.exists()):

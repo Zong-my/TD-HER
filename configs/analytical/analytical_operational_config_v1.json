@@ -1,0 +1,32 @@
+{
+  "run_id": "physical_causal_sfr_fnp_v1",
+  "channel_system_base_mva": 100.0,
+  "model_system_base_mva": 1000.0,
+  "f_base_hz": 60.0,
+  "trip_persistence_rows": 3,
+  "trip_min_pre_power_mw": 1.0,
+  "trip_zero_power_mw": 0.001,
+  "step_estimator_rows": 3,
+  "initial_limit_proxy_tolerance_mw": 1.0,
+  "frozen_coi_weights": [
+    6.05,
+    3.41,
+    6.05,
+    0.0,
+    3.41,
+    5.016,
+    3.141,
+    3.141,
+    5.32,
+    500.0
+  ],
+  "primary_event_categories": [
+    "cut_machine",
+    "load_change"
+  ],
+  "category_role": "Predeclared benchmark scope only; metadata is not an online classifier or an input to numerical estimation. All short-circuit rows remain NOT_APPLICABLE in the primary denominator.",
+  "initial_state": "Observed t0 frequency offset is added using immutable evaluation COI weights; zero incremental governor state around the pre-event operating point is assumed. Initial electrical power approximates mechanical output for a branch sanity check.",
+  "governor_scope": "Unconstrained linear primary-frequency response. Future saturation, temperature selection, reserve activation and rate limits are not reconstructed; therefore this is a qualified analytical approximation, not an exact PSS/E surrogate.",
+  "failure_policy": "Out-of-scope short circuits, known initial branch violations, unsupported multiple outages, absent physical inputs and roots retain explicit non-OK rows with empty primary predictions. Nonpositive estimated deficits are not applicable to native FNP.",
+  "timing_scope": "Shared causal-array estimator, state mapping, baseline aggregation and checks plus method parameter aggregation/range selection and prediction. File reads, identity hashing and prepared device tables are separate. FNP fit-range lookup is charged online."
+}

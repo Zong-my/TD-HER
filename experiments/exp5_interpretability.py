@@ -7,6 +7,14 @@ Experiment 5: Interpretability Analysis (IEEE 39-bus).
 5c - KAN Activation Visualization (intermediate activation distributions)
 """
 
+# Resolve source imports independently of the caller's working directory.
+import sys as _tdher_sys
+from pathlib import Path as _TDHERPath
+_tdher_repo = next(x for x in _TDHERPath(__file__).resolve().parents if (x / "tdher_paths.py").is_file())
+if str(_tdher_repo) not in _tdher_sys.path:
+    _tdher_sys.path.insert(0, str(_tdher_repo))
+from tdher_paths import REPO_ROOT, WORK_ROOT, DATA_ROOT, RESULTS_ROOT, data_path, work_path
+
 import os
 import sys
 import json
@@ -17,7 +25,6 @@ import torch
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from matplotlib import font_manager
 from pathlib import Path
 from loguru import logger
 from sklearn.preprocessing import StandardScaler
@@ -25,36 +32,17 @@ from sklearn.preprocessing import StandardScaler
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
+from experiments.figure_style import (
+    apply_style, clean_axes, save_figure,
+    COL_WIDTH, TEXT_WIDTH, SUPP_FIG_DIR,
+)
+
 SEED = 42
 np.random.seed(SEED)
 torch.manual_seed(SEED)
 
-# ── IEEE TII figure style ──
-# Try Times New Roman, fall back to serif
-_TNR = 'Times New Roman'
-_available_fonts = {f.name for f in font_manager.fontManager.ttflist}
-if _TNR not in _available_fonts:
-    _TNR = 'serif'
-    logger.warning("Times New Roman not found, falling back to serif")
-
-plt.rcParams.update({
-    'font.family': _TNR if _TNR == 'serif' else 'serif',
-    'font.serif': [_TNR, 'DejaVu Serif'],
-    'font.size': 10,
-    'axes.labelsize': 11,
-    'axes.titlesize': 12,
-    'xtick.labelsize': 9,
-    'ytick.labelsize': 9,
-    'legend.fontsize': 9,
-    'figure.dpi': 300,
-    'savefig.dpi': 300,
-    'savefig.bbox': 'tight',
-    'axes.linewidth': 0.8,
-    'xtick.major.width': 0.6,
-    'ytick.major.width': 0.6,
-    'pdf.fonttype': 42,  # TrueType for journal submission
-    'ps.fonttype': 42,
-})
+# Use the shared IEEE TII figure style (same as main paper figures)
+apply_style()
 
 # ── Color palette for physical quantity types ──
 PHYS_COLORS = {
@@ -99,11 +87,12 @@ def get_bar_color(feat_name: str) -> str:
 
 
 def save_fig(fig, path_stem: str):
-    """Save figure as both PNG and PDF."""
-    fig.savefig(f'{path_stem}.png', dpi=300, bbox_inches='tight')
-    fig.savefig(f'{path_stem}.pdf', bbox_inches='tight')
+    """Save figure as PNG (600 DPI) + PDF + SVG, consistent with main paper."""
+    for fmt in ["pdf", "png", "svg"]:
+        fig.savefig(f'{path_stem}.{fmt}', format=fmt,
+                    dpi=600, bbox_inches='tight', pad_inches=0.05)
     plt.close(fig)
-    logger.info(f"  Saved: {path_stem}.png/.pdf")
+    logger.info(f"  Saved: {path_stem}.pdf/.png/.svg")
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -131,7 +120,7 @@ def exp5a_mrmr_ranking(exp1_dir: str, result_dir: str):
         colors = [get_bar_color(f) for f in top30]
         ranks = list(range(1, 31))
 
-        fig, ax = plt.subplots(figsize=(5.5, 6.5))
+        fig, ax = plt.subplots(figsize=(COL_WIDTH + 1.0, 5.5))
 
         # Horizontal bars: rank 1 at top
         y_pos = np.arange(30)
@@ -139,9 +128,9 @@ def exp5a_mrmr_ranking(exp1_dir: str, result_dir: str):
                 linewidth=0.3, height=0.75)
 
         ax.set_yticks(y_pos)
-        ax.set_yticklabels(top30[::-1], fontsize=8, fontfamily=_TNR)
-        ax.set_xlabel('mRMR Rank', fontsize=11)
-        ax.set_title(f'Top-30 mRMR Features — {target_label}', fontsize=12)
+        ax.set_yticklabels(top30[::-1])
+        ax.set_xlabel('mRMR Rank')
+        ax.set_title(f'Top-30 mRMR Features — {target_label}')
         ax.invert_xaxis()  # rank 1 = longest bar
         ax.set_xlim(31, 0)
 
@@ -156,12 +145,11 @@ def exp5a_mrmr_ranking(exp1_dir: str, result_dir: str):
                           linewidth=0.3, label=cat.upper() if cat != 'static' else 'Static')
             for cat, color in seen.items()
         ]
-        ax.legend(handles=legend_handles, loc='lower right', fontsize=8,
+        ax.legend(handles=legend_handles, loc='lower right',
                   framealpha=0.9, edgecolor='gray')
 
         ax.tick_params(axis='both', which='both', length=3)
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
+        clean_axes(ax)
         fig.tight_layout()
 
         save_fig(fig, f'{result_dir}/5a_mrmr_top30_{target_key}')
@@ -227,7 +215,7 @@ def exp5b_ale_plots(rep_dir: str, exp1_dir: str, result_dir: str, ms: int = 10):
         logger.info(f"  Generating ALE for {target_key}: {top10_names}")
 
         # Grid of ALE subplots: 2 rows x 5 cols
-        fig, axes = plt.subplots(2, 5, figsize=(14, 5.5))
+        fig, axes = plt.subplots(2, 5, figsize=(TEXT_WIDTH, 3.2))
         axes_flat = axes.flatten()
 
         for fi, feat_name in enumerate(top10_names):
@@ -252,7 +240,7 @@ def exp5b_ale_plots(rep_dir: str, exp1_dir: str, result_dir: str, ms: int = 10):
                 y_vals = ale_result['eff'].to_numpy()
 
                 color = get_bar_color(feat_name)
-                ax.plot(x_vals, y_vals, color=color, linewidth=1.5)
+                ax.plot(x_vals, y_vals, color=color, linewidth=1.2)
 
                 # Plot CI if available
                 if 'lowerCI_95%' in ale_result.columns:
@@ -260,21 +248,21 @@ def exp5b_ale_plots(rep_dir: str, exp1_dir: str, result_dir: str, ms: int = 10):
                     upper = ale_result['upperCI_95%'].to_numpy()
                     ax.fill_between(x_vals, lower, upper, color=color, alpha=0.15)
 
-                ax.axhline(0, color='gray', linewidth=0.5, linestyle='--')
-                ax.set_xlabel(feat_name, fontsize=8)
+                ax.axhline(0, color='gray', linewidth=0.4, linestyle='--')
+                ax.set_xlabel(feat_name)
                 if fi % 5 == 0:
-                    ax.set_ylabel('ALE', fontsize=9)
-                ax.tick_params(labelsize=7)
-                ax.set_title(f'#{fi+1}', fontsize=9, fontweight='bold')
+                    ax.set_ylabel('ALE')
+                ax.set_title(f'#{fi+1}', fontweight='bold')
+                clean_axes(ax)
 
             except Exception as e:
                 logger.warning(f"    ALE failed for {feat_name}: {e}")
                 ax.text(0.5, 0.5, f'Error:\n{feat_name}', ha='center', va='center',
-                        fontsize=7, transform=ax.transAxes)
+                        fontsize=6, transform=ax.transAxes)
                 ax.set_xticks([])
                 ax.set_yticks([])
 
-        fig.suptitle(f'ALE Plots — LightGBM — {target_label}', fontsize=12, y=1.02)
+        fig.suptitle(f'ALE Plots — LightGBM — {target_label}', y=1.02)
         fig.tight_layout()
         save_fig(fig, f'{result_dir}/5b_ale_{target_key}')
 
@@ -395,7 +383,7 @@ def exp5c_kan_activations(rep_dir: str, exp1_dir: str, result_dir: str,
 
     # Plot: activation output distribution of the first layer neurons
     # corresponding to top-5 features' influence
-    fig, axes = plt.subplots(1, 5, figsize=(14, 3))
+    fig, axes = plt.subplots(1, 5, figsize=(TEXT_WIDTH, 2.0))
     for fi, feat_name in enumerate(top5_names):
         ax = axes[fi]
         color = get_bar_color(feat_name)
@@ -422,24 +410,24 @@ def exp5c_kan_activations(rep_dir: str, exp1_dir: str, result_dir: str,
                 mask = (x_sorted >= bin_edges[bi]) & (x_sorted < bin_edges[bi + 1])
                 if mask.sum() > 0:
                     bin_means[bi] = y_sorted[mask].mean()
-            ax.plot(bin_centers, bin_means, linewidth=1.0, alpha=0.6,
+            ax.plot(bin_centers, bin_means, linewidth=0.8, alpha=0.6,
                     label=f'neuron {oi}')
 
-        ax.set_xlabel(feat_name, fontsize=8)
+        ax.set_xlabel(feat_name)
         if fi == 0:
-            ax.set_ylabel('Activation', fontsize=9)
-        ax.tick_params(labelsize=7)
-        ax.set_title(f'#{fi+1}', fontsize=9, fontweight='bold')
+            ax.set_ylabel('Activation')
+        ax.set_title(f'#{fi+1}', fontweight='bold')
+        clean_axes(ax)
         if fi == 4:
-            ax.legend(fontsize=6, loc='upper right', framealpha=0.7)
+            ax.legend(fontsize=5.5, loc='upper right', framealpha=0.7)
 
-    fig.suptitle(f'KAN Layer-0 Activation Profiles — {target_label}', fontsize=12, y=1.05)
+    fig.suptitle(f'KAN Layer-0 Activation Profiles — {target_label}', y=1.05)
     fig.tight_layout()
     save_fig(fig, f'{result_dir}/5c_kan_activation_profiles_{target_key}')
 
     # ── Plot 2: Activation distribution histograms per layer ──
     n_layers = len(activations)
-    fig, axes = plt.subplots(1, n_layers, figsize=(4 * n_layers, 3.5))
+    fig, axes = plt.subplots(1, n_layers, figsize=(TEXT_WIDTH, 2.0))
     if n_layers == 1:
         axes = [axes]
 
@@ -450,21 +438,21 @@ def exp5c_kan_activations(rep_dir: str, exp1_dir: str, result_dir: str,
 
         ax.hist(flat, bins=80, density=True, color='steelblue', alpha=0.7,
                 edgecolor='white', linewidth=0.3)
-        ax.set_xlabel('Activation Value', fontsize=9)
+        ax.set_xlabel('Activation Value')
         if li == 0:
-            ax.set_ylabel('Density', fontsize=9)
-        ax.set_title(f'Layer {li} ({act.shape[1]} neurons)', fontsize=10)
-        ax.tick_params(labelsize=8)
+            ax.set_ylabel('Density')
+        ax.set_title(f'Layer {li} ({act.shape[1]} neurons)')
+        clean_axes(ax)
 
         # Add statistics annotation
         mu, sigma = flat.mean(), flat.std()
-        ax.axvline(mu, color='red', linewidth=1, linestyle='--', alpha=0.7)
+        ax.axvline(mu, color='red', linewidth=0.8, linestyle='--', alpha=0.7)
         ax.text(0.95, 0.95, f'$\\mu$={mu:.3f}\n$\\sigma$={sigma:.3f}',
-                transform=ax.transAxes, ha='right', va='top', fontsize=8,
+                transform=ax.transAxes, ha='right', va='top', fontsize=6.5,
                 bbox=dict(boxstyle='round,pad=0.3', facecolor='white',
                           edgecolor='gray', alpha=0.8))
 
-    fig.suptitle(f'KAN Activation Distributions — {target_label}', fontsize=12, y=1.03)
+    fig.suptitle(f'KAN Activation Distributions — {target_label}', y=1.03)
     fig.tight_layout()
     save_fig(fig, f'{result_dir}/5c_kan_activation_dist_{target_key}')
 
@@ -509,11 +497,11 @@ if __name__ == '__main__':
     import argparse
     p = argparse.ArgumentParser(description='Exp5: Interpretability Analysis')
     p.add_argument('--rep-dir',
-                   default='data/ieee39_v8_80_10_10')
+                   default=str(data_path('ieee39_v8_80_10_10')))
     p.add_argument('--exp1-dir',
-                   default=str(PROJECT_ROOT / 'results' / 'ieee39' / 'exp1'))
+                   default=str(work_path('results') / 'ieee39' / 'exp1'))
     p.add_argument('--result-dir',
-                   default=str(PROJECT_ROOT / 'results' / 'ieee39' / 'exp5'))
+                   default=str(work_path('results') / 'ieee39' / 'exp5'))
     p.add_argument('--ms', type=int, default=10)
     p.add_argument('--device', default='cuda')
     p.add_argument('--sub', default='all',

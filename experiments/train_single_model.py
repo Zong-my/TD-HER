@@ -16,9 +16,17 @@ Usage:
 
     # Override defaults
     python experiments/train_single_model.py --model PatchTST \
-        --rep-dir data/ieee39_v8 \
+        --rep-dir <external-data>/raw/ieee39 \
         --result-dir results/ieee39/exp1 --ms 10 --n-trials 30
 """
+
+# Resolve source imports independently of the caller's working directory.
+import sys as _tdher_sys
+from pathlib import Path as _TDHERPath
+_tdher_repo = next(x for x in _TDHERPath(__file__).resolve().parents if (x / "tdher_paths.py").is_file())
+if str(_tdher_repo) not in _tdher_sys.path:
+    _tdher_sys.path.insert(0, str(_tdher_repo))
+from tdher_paths import REPO_ROOT, WORK_ROOT, DATA_ROOT, RESULTS_ROOT, data_path, work_path
 
 import os
 import sys
@@ -634,12 +642,12 @@ if __name__ == '__main__':
     p = argparse.ArgumentParser(description="Train a single model for Experiment 1")
     p.add_argument('--model', required=True, choices=list(MODEL_REGISTRY.keys()),
                    help='Model name to train')
-    p.add_argument('--rep-dir', default='data/ieee39_v8_80_10_10')
-    p.add_argument('--adj-path', default='data/ieee39_v8/adjacency/adjacency.npy')
-    p.add_argument('--result-dir', default='results/ieee39/exp1')
+    p.add_argument('--rep-dir', default=str(data_path('ieee39_v8_80_10_10')))
+    p.add_argument('--adj-path', default=str(data_path('ieee39_v8/adjacency/adjacency.npy')))
+    p.add_argument('--result-dir', default=str(work_path('results/ieee39/exp1')))
     p.add_argument('--ms', type=int, default=10)
     p.add_argument('--device', default='cuda')
-    p.add_argument('--n-trials', type=int, default=50)
+    p.add_argument('--n-trials', type=int, default=20)
     args = p.parse_args()
 
     run_single_model(args.model, args.rep_dir, args.adj_path,

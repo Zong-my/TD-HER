@@ -10,6 +10,14 @@ tests. They are useful for screening measurement-noise and missing-feature
 sensitivity, but they do not replace a future raw PMU re-extraction experiment.
 """
 
+# Resolve source imports independently of the caller's working directory.
+import sys as _tdher_sys
+from pathlib import Path as _TDHERPath
+_tdher_repo = next(x for x in _TDHERPath(__file__).resolve().parents if (x / "tdher_paths.py").is_file())
+if str(_tdher_repo) not in _tdher_sys.path:
+    _tdher_sys.path.insert(0, str(_tdher_repo))
+from tdher_paths import REPO_ROOT, WORK_ROOT, DATA_ROOT, RESULTS_ROOT, data_path, work_path
+
 import argparse
 import csv
 import json
@@ -57,9 +65,9 @@ from data_proc.build_representations import (  # noqa: E402
     parse_temporal_columns,
 )
 
-ROUTER_DIR = Path("results/ieee39/exp_tdh_router")
-OUT_DIR = Path("results/ieee39/tdher_robustness")
-CSV_DIR = Path("data/ieee39_v8_80_10_10/csv")
+ROUTER_DIR = Path(str(work_path('results/ieee39/exp_tdh_router')))
+OUT_DIR = Path(str(work_path('results/ieee39/tdher_robustness')))
+CSV_DIR = Path(str(data_path('ieee39_v8_80_10_10/csv')))
 METHOD = "admission_affine_convex_blend_nonnegative_y2"
 CONDITIONS = {
     "noise_0001": {"noise_std": 0.001, "missing_frac": 0.0},

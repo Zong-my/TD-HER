@@ -15,6 +15,14 @@ Outputs are written to ``results/paper_tables`` and
 
 from __future__ import annotations
 
+# Resolve source imports independently of the caller's working directory.
+import sys as _tdher_sys
+from pathlib import Path as _TDHERPath
+_tdher_repo = next(x for x in _TDHERPath(__file__).resolve().parents if (x / "tdher_paths.py").is_file())
+if str(_tdher_repo) not in _tdher_sys.path:
+    _tdher_sys.path.insert(0, str(_tdher_repo))
+from tdher_paths import REPO_ROOT, WORK_ROOT, DATA_ROOT, RESULTS_ROOT, data_path, work_path
+
 import csv
 import json
 from itertools import combinations
@@ -25,10 +33,10 @@ from scipy.optimize import minimize
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-REP_DIR = Path("data/ieee39_v8_80_10_10")
-ROUTER_DIR = PROJECT_ROOT / "results/ieee39/exp_tdh_router"
-OUT_DIR = PROJECT_ROOT / "results/ieee39/tdher_expert_sensitivity"
-TABLE_DIR = PROJECT_ROOT / "results/paper_tables"
+REP_DIR = Path(str(data_path('ieee39_v8_80_10_10')))
+ROUTER_DIR = work_path('results/ieee39/exp_tdh_router')
+OUT_DIR = work_path('results/ieee39/tdher_expert_sensitivity')
+TABLE_DIR = work_path('results/paper_tables')
 
 SCENARIOS = {
     "L1_same_dist": {

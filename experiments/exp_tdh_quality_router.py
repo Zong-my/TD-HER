@@ -19,6 +19,14 @@ held-out behavior is consistently defensible.
 
 from __future__ import annotations
 
+# Resolve source imports independently of the caller's working directory.
+import sys as _tdher_sys
+from pathlib import Path as _TDHERPath
+_tdher_repo = next(x for x in _TDHERPath(__file__).resolve().parents if (x / "tdher_paths.py").is_file())
+if str(_tdher_repo) not in _tdher_sys.path:
+    _tdher_sys.path.insert(0, str(_tdher_repo))
+from tdher_paths import REPO_ROOT, WORK_ROOT, DATA_ROOT, RESULTS_ROOT, data_path, work_path
+
 import argparse
 import csv
 import json
@@ -64,8 +72,8 @@ from experiments.exp_tdh_router import enforce_y2_nonnegative  # noqa: E402
 
 
 SCENARIO = "L1_same_dist"
-OUT_DIR = Path("results/ieee39/tdher_robustness/quality_router")
-PAPER_TABLE_DIR = Path("results/paper_tables")
+OUT_DIR = Path(str(work_path('results/ieee39/tdher_robustness/quality_router')))
+PAPER_TABLE_DIR = Path(str(work_path('results/paper_tables')))
 DEFAULT_GATE_CAL_CONDITIONS = [
     "clean_rebuild",
     "sensor_noise_low",

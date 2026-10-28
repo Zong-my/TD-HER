@@ -1,0 +1,10 @@
+# Additional expert families and optional comparisons/interpretability.
+torch-geometric>=2.7.0
+mamba-ssm>=2.3.0
+efficient-kan>=0.1.0
+xgboost>=3.0.0
+catboost>=1.2.8
+shap>=0.49.0
+PyALE>=1.2.0
+sklearn-genetic-selection>=0.6.0
+scikit-optimize>=0.10.0

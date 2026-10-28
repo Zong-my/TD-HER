@@ -7,6 +7,14 @@ write to ``exp7_rebuild`` or another fresh directory, and then pass
 ``experiments/audit_ieee300_exp7.py`` before any paper claim uses them.
 """
 
+# Resolve source imports independently of the caller's working directory.
+import sys as _tdher_sys
+from pathlib import Path as _TDHERPath
+_tdher_repo = next(x for x in _TDHERPath(__file__).resolve().parents if (x / "tdher_paths.py").is_file())
+if str(_tdher_repo) not in _tdher_sys.path:
+    _tdher_sys.path.insert(0, str(_tdher_repo))
+from tdher_paths import REPO_ROOT, WORK_ROOT, DATA_ROOT, RESULTS_ROOT, data_path, work_path
+
 import os
 import sys
 import json
@@ -43,9 +51,9 @@ def run_experiment7(rep_dir: str, adj_path: str, result_dir: str,
 if __name__ == '__main__':
     import argparse
     p = argparse.ArgumentParser()
-    p.add_argument('--rep-dir', default='data/ieee300_v2_posttrigger')
-    p.add_argument('--adj-path', default='data/ieee300_v2/adjacency/adjacency.npy')
-    p.add_argument('--result-dir', default='results/ieee300/exp7_rebuild')
+    p.add_argument('--rep-dir', default=str(data_path('ieee300_v2_posttrigger')))
+    p.add_argument('--adj-path', default=str(data_path('ieee300_v2/adjacency/adjacency.npy')))
+    p.add_argument('--result-dir', default=str(work_path('results/ieee300/exp7_rebuild')))
     p.add_argument('--ms', type=int, default=10)
     p.add_argument('--device', default='cuda')
     p.add_argument('--models', nargs='+', choices=EXP1_MODELS, default=None)

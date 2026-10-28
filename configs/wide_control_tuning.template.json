@@ -1,0 +1,111 @@
+{
+  "protocol_id": "wide_control_tuning_v1",
+  "fixed": {
+    "strategy": "vanilla",
+    "model": {
+      "d_model": 192,
+      "d_ff": 768,
+      "n_layers": 6,
+      "n_heads": 4,
+      "tab_hidden": 256,
+      "tab_output": 128,
+      "patch_len": 3,
+      "stride": 2
+    },
+    "expected_parameter_count": 5513550,
+    "batch_size": 512,
+    "warmup_epochs": 5,
+    "max_epochs": 200,
+    "patience": 20,
+    "fine_tune_epochs": 50,
+    "precision": "AMP for the vanilla path (unchanged runner behaviour)",
+    "scheduler": "five-epoch linear warm-up followed by cosine decay to 1e-6 (unchanged runner behaviour)",
+    "loss": "SmoothL1 per task on targets standardized on the L1 training split; vanilla objective = y1_weight*loss1 + y2_weight*loss2",
+    "data": "RepB temporal (train/val) + mRMR-selected static features, scalers fitted on the L1 training split, exactly as experiments/exp_r2_mtl_baselines.py::load_fixed_data"
+  },
+  "search_space": {
+    "lr": {
+      "type": "float",
+      "low": 5e-05,
+      "high": 0.005,
+      "log": true,
+      "source": "experiments/train_single_model.py objective (expert Optuna search)"
+    },
+    "weight_decay": {
+      "type": "float",
+      "low": 1e-06,
+      "high": 0.01,
+      "log": true,
+      "source": "experiments/train_single_model.py objective (expert Optuna search)"
+    },
+    "dropout": {
+      "type": "float",
+      "low": 0.05,
+      "high": 0.3,
+      "log": false,
+      "source": "models/patchtst_model.py build_patchtst_from_trial"
+    },
+    "y1_weight": {
+      "type": "float",
+      "low": 0.5,
+      "high": 2.0,
+      "log": false,
+      "source": "experiments/train_single_model.py objective (expert Optuna search)"
+    },
+    "y2_weight": {
+      "type": "float",
+      "low": 0.5,
+      "high": 2.0,
+      "log": false,
+      "source": "experiments/train_single_model.py objective (expert Optuna search)"
+    }
+  },
+  "search": {
+    "sampler": "optuna.samplers.TPESampler(seed=42)",
+    "pruner": "optuna.pruners.MedianPruner(n_startup_trials=5, n_warmup_steps=10)",
+    "total_trials": 20,
+    "safety_timeout_hours": 48,
+    "objective": "best validation mean standardized SmoothL1 over the two tasks with equal weights (M.ConflictAwareTrainer.evaluate_loss), i.e. the runner's own checkpoint-selection metric; independent of the trained task weights",
+    "direction": "minimize",
+    "seed_per_trial": 42,
+    "splits_loaded": [
+      "train",
+      "val"
+    ],
+    "test_arrays": "never loaded in the search and robustness phases (runtime guard on every numpy file read)",
+    "storage": "sqlite study.db inside the output directory; parallel workers allowed only after the smoke confirms memory and runtime"
+  },
+  "robustness": {
+    "top_k": 3,
+    "extra_seeds": [
+      52,
+      62
+    ],
+    "selection": "lowest mean of the per-seed best validation objective over seeds {42 (search trial), 52, 62}; writes tuned_config.json",
+    "splits_loaded": [
+      "train",
+      "val"
+    ]
+  },
+  "final": {
+    "seeds": [
+      42,
+      52,
+      62
+    ],
+    "max_epochs": 200,
+    "patience": 20,
+    "fine_tune_epochs": 50,
+    "l2_l3_protocol": "unchanged runner protocol: 80/20 inner split of the shifted calibration set selects the fine-tuning epoch count, refit on the full calibration set, one evaluation on the shifted test set",
+    "test_selection": false
+  },
+  "published_configuration": {
+    "lr": null,
+    "weight_decay": null,
+    "dropout": null,
+    "y1_weight": null,
+    "y2_weight": null
+  },
+  "never_write": [],
+  "_template_note": "Design-only template. Bind your own upstream inputs and derived manifest fields before execution; no author result values are supplied."
+}

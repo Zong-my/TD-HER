@@ -1,0 +1,58 @@
+{
+  "protocol_id": "comparator_mlnadir_v1",
+  "variants": {
+    "prespecified_pairs": [
+      "native_downward__context2",
+      "native_downward__context7",
+      "all_events__context2",
+      "all_events__context7"
+    ]
+  },
+  "model": {
+    "search_space": {
+      "splitter": [
+        "best",
+        "random"
+      ],
+      "max_depth": {
+        "low": 1,
+        "high": 99,
+        "step": 2,
+        "note": "range(1, 100, 2) as in src/optimization.py"
+      },
+      "criterion": [
+        "friedman_mse",
+        "squared_error",
+        "poisson",
+        "absolute_error"
+      ]
+    }
+  },
+  "target": {
+    "f_base_hz": 60.0
+  },
+  "search": {
+    "trials_per_variant": 20
+  },
+  "final": {
+    "seeds": [
+      123,
+      42,
+      52,
+      62
+    ]
+  },
+  "evaluation": {
+    "common_cohort": {
+      "conditions": [
+        "OK",
+        "compatible_primary"
+      ],
+      "source_files": [],
+      "expected_counts": {}
+    },
+    "printed_references_frozen": {}
+  },
+  "never_write": [],
+  "_template_note": "Design-only template. Bind your own upstream inputs and derived manifest fields before execution; no author result values are supplied."
+}

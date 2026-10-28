@@ -1,19 +1,16 @@
 # TD-HER
 
-**Early Prediction of Power System Frequency Extremum and Its Arrival Time via
-Target-Dependent Heterogeneous Expert Routing**
+The associated manuscript is currently under review at IEEE Transactions on
+Industrial Informatics (TII).
 
 TD-HER combines a frozen heterogeneous expert bank, target-specific convex
 routing, and selective adaptation. It predicts the signed frequency extremum
 and its arrival time from an early post-disturbance measurement window.
 
-This is a **source-only release**. It contains Python implementations,
-simulation input cases, experiment configuration and documentation.
-It contains **no trained weights, prediction arrays, experiment results,
-result tables, simulation trajectories, cached features or training logs**.
-The existing processed benchmark is distributed separately on
-[Hugging Face](https://huggingface.co/datasets/babycow/TD-HER-Dataset).
-Do not download data or save generated artifacts inside this checkout.
+This repository provides Python implementations, simulation input cases,
+experiment configurations and documentation. The processed benchmark dataset
+is available on [Hugging Face](https://huggingface.co/datasets/babycow/TD-HER-Dataset).
+Store datasets and generated outputs in the external workspace described below.
 
 ## Method
 
@@ -31,15 +28,9 @@ Do not download data or save generated artifacts inside this checkout.
    admitted prediction columns. Apply the bounded affine correction and
    project the arrival-time prediction onto the nonnegative domain.
 
-The additional paired-bootstrap admission condition is **not part of the
-current TD-HER rule**. Functions named `certified_*` remain only as comparison
-implementations for the historical two-condition variant. Bootstrap analysis
-of prediction differences is distinct from the deployed admission decision.
-
 The evaluated base bank contains LightGBM, KAN, ConvLSTM, PatchTST, Mamba,
-ST-GCN and FT-Transformer. `models/` contains their architecture source code,
-not trained model files. Additional model modules support explicitly named
-comparison experiments; they do not enlarge the seven-expert bank.
+ST-GCN and FT-Transformer. Their architectures are implemented in `models/`,
+alongside additional modules for comparison experiments.
 
 ## Layout
 
@@ -86,7 +77,7 @@ GPU extensions. Mamba requires its compatible `mamba-ssm` implementation;
 ST-GCN requires `torch-geometric`; KAN uses `efficient-kan`.
 Install the applicable packages from requirements-optional.txt.
 See [dependencies](docs/DEPENDENCIES.md) for the tested environment and
-optional packages. PSS/E, its licence and vendor binaries are not included.
+optional packages. Simulation requires a separately licensed PSS/E installation.
 
 ## External workspace
 
@@ -97,8 +88,8 @@ python tdher.py paths
 ```
 
 The default workspace is the sibling directory `../TD-HER-work`.
-Both variables must point outside the source checkout. The supported
-`tdher.py run` launcher also rejects writes into the checkout.
+Set both variables to directories outside the source checkout. The
+`tdher.py run` launcher uses this external workspace for generated files.
 
 The expected processed-data layout is:
 
@@ -117,7 +108,7 @@ The repository names `ieee39_v8_80_10_10` and
 `ieee300_v2_posttrigger` in legacy interfaces resolve to
 `ieee39` and `ieee300` through `tdher_paths.py`.
 
-A dataset download, if desired, must target the external data directory:
+Download the benchmark into the external data directory:
 
 ```python
 import os
@@ -130,9 +121,8 @@ snapshot_download(
 )
 ```
 
-Check the resulting directory structure against the layout above. The
-separate dataset release is an input resource, not an output bundle from
-the additional studies.
+Check the downloaded directory structure against the layout above before
+running the experiments.
 
 ## Running the core pipeline
 
@@ -162,14 +152,14 @@ python tdher.py run experiments/exp_tdh_router.py
 
 The current TD-HER output is the margin-rule, affine-corrected,
 nonnegative-arrival-time variant. Historical comparison variants are named
-separately in the generated output. No test labels are used to choose
-admission or route weights.
+separately in the generated output. Admission decisions and route weights
+are determined from the held-out calibration data.
 
 The extension drivers require their declared upstream inputs: for example,
 base-expert fits for control comparisons, and independently generated
-analytical/cohort inputs for native-nadir comparisons. They are not supplied
-as precomputed result files. [EXPERIMENTS.md](docs/EXPERIMENTS.md) explains the
-dependency order and configuration preparation.
+analytical/cohort inputs for native-nadir comparisons. Follow
+[EXPERIMENTS.md](docs/EXPERIMENTS.md) to prepare these inputs in the required
+dependency order.
 
 ## Validation
 
@@ -178,18 +168,18 @@ PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s tests -v
 python tools/check_release.py
 ```
 
-These checks use synthetic fixtures or source inspection. They do not
-retrain experts, re-evaluate the benchmark or assert published MAE values.
-Full simulation requires a licensed PSS/E installation; full learning
-experiments require the external input data and suitable compute resources.
+These checks validate routing behavior and repository organization using
+synthetic fixtures and source inspection. Simulation uses a licensed PSS/E
+installation; learning experiments use the external input data and compute
+resources described in [dependencies](docs/DEPENDENCIES.md).
 
 ## Citation and licence
 
-Please cite the TD-HER article by its final bibliographic record when
-available. This source release does not assign a DOI or publication status
-to the manuscript.
+The associated manuscript is currently under review at IEEE Transactions on
+Industrial Informatics (TII). Citation details will be added following publication.
 
 The code is distributed under the [MIT licence](LICENSE). Third-party
 libraries retain their own licences. Simulation cases are research
 derivatives of IEEE test systems; original case provenance and applicable
-source terms remain in force. The PSS/E software itself is not redistributed.
+source terms remain in force. PSS/E is available from its vendor under a
+separate licence.

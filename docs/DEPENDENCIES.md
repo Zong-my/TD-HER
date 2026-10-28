@@ -16,3 +16,11 @@ PSS/E generation is separate. Use the Python interpreter bundled with the instal
 version on Windows. The legacy generators target the PSS/E 33 API; vendor modules psspy,
 dyntools and redirect require a licensed installation. Its executable, licence and runtime
 are not shipped. Simulation outputs belong in TDHER_SIM_OUTPUT, outside this checkout.
+
+## Manuscript workstation
+
+The manuscript reports an Intel Xeon w5-3535X CPU at 3.20 GHz, 512 GB RAM,
+and an NVIDIA RTX PRO 6000 GPU. These are the documented experiment resources,
+not minimum hardware requirements. PSS/E 33.4 generation uses the separate
+licensed Windows environment described in [simulation instructions](../simulation/README.md).
+This release contains no measured timing or performance output files.
